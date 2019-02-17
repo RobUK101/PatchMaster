@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 using System.IO;
-using System.Drawing;
 
 namespace PatchMaster
 {
@@ -137,7 +136,7 @@ namespace PatchMaster
 
         private void Splash_Load(object sender, EventArgs e)
         {
-            globalObjects.GlobalClass.buildVersion = "1.5";
+            globalObjects.GlobalClass.buildVersion = "1.6";
 
             pb_thugLife.Image = loadimagefromString(thugLife);
 

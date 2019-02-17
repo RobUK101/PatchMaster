@@ -1262,7 +1262,7 @@ namespace PatchMaster
 
                 foreach (globalObjects.securityscopeItem asecurityscopeItem in globalObjects.GlobalClass.securityscopeRules)
                 {
-                    int ret = dgv_SecurityScopes.Rows.Add(asecurityscopeItem.DeviceGroup, asecurityscopeItem.ScopeType, asecurityscopeItem.Scope);
+                    int ret = dgv_SecurityScopes.Rows.Add(asecurityscopeItem.DeviceGroup, asecurityscopeItem.Scope, asecurityscopeItem.ScopeType);
                 }
 
                 // Build the Naming Standard bar
@@ -2168,7 +2168,13 @@ namespace PatchMaster
 
                         DataGridViewTextBoxCell aCell = new DataGridViewTextBoxCell();
 
-                        aCell.Value = globalObjects.GlobalClass.popupformManifest[0]; // Only select the top Device Group so that multiple items do not pass down further into the code
+                        //////////////////////////////////////
+                        // MULTI-DEVICEGROUP CODE MODIFICATION
+                        //////////////////////////////////////
+
+                        aCell.Value = String.Join(",", globalObjects.GlobalClass.popupformManifest);
+
+                        // aCell.Value = globalObjects.GlobalClass.popupformManifest[0]; // Only select the top Device Group so that multiple items do not pass down further into the code
 
                         dgv_Transcript.Rows[e.RowIndex].Cells[e.ColumnIndex] = aCell;
 
@@ -3901,22 +3907,41 @@ namespace PatchMaster
                     aclientdeploymentProperty.UserUIExperience = false;
                     aclientdeploymentProperty.WoLEnabled = false;
 
-                    globalObjects.GlobalClass.globaldeploymentpropertiesCollection.Add(aclientdeploymentProperty);
-
-                    // Add to the device properties drop-down
-
-                    cb_deploymentdeviceGroup.Items.Add(tb_deviceType.Text);
-
-                    // Add to the Device Group drop-down
-
-                    lb_deviceType.Items.Add(tb_deviceType.Text);
+                    globalObjects.GlobalClass.globaldeploymentpropertiesCollection.Add(aclientdeploymentProperty);                   
 
                     // Add to the global device group collection
 
                     globalObjects.GlobalClass.devicetypeList.Add(tb_deviceType.Text);
 
+                    // Clear the data entry field for the device group
+
                     tb_deviceType.Text = "";
 
+                    // Repopulate the dependent drop downs
+
+                    this.lb_deviceType.Items.Clear();
+
+                    this.c_deployments_DeviceType.Items.Clear();
+
+                    this.c_scoping_deviceType.Items.Clear();
+
+                    this.cb_deploymentdeviceGroup.Items.Clear();
+
+                    foreach (string aItem in globalObjects.GlobalClass.devicetypeList)
+                    {
+                        // Add to the Device Group drop-down
+
+                        lb_deviceType.Items.Add(aItem);
+
+                        this.c_deployments_DeviceType.Items.Add(aItem);
+
+                        this.c_scoping_deviceType.Items.Add(aItem);
+
+                        // Add to the device properties drop-down
+
+                        this.cb_deploymentdeviceGroup.Items.Add(aItem);
+                    }
+                    
                     // Store device groups in the registry
 
                     setRegistry("PatchDeviceTypes", globalObjects.GlobalClass.devicetypeList.ToArray());
@@ -3925,16 +3950,13 @@ namespace PatchMaster
 
                     setRegistry("PatchDeploymentProperties", readyforRegistry);
 
-                    getpatchdevicetypefromRegistry();
+                    getpatchdevicetypefromRegistry();                    
                 }
             }
             catch (Exception ee)
             {
 
             }
-
-
-
         }
 
         private void b_devicetypeRemove_Click(object sender, EventArgs e)
@@ -3945,7 +3967,32 @@ namespace PatchMaster
 
                 globalObjects.GlobalClass.globaldeploymentpropertiesCollection.RemoveName(devicetypeitemName);
 
-                cb_deploymentdeviceGroup.Items.Remove(lb_deviceType.SelectedItem.ToString());
+                globalObjects.GlobalClass.devicetypeList.Remove(devicetypeitemName);
+
+                // Repopulate the dependent drop downs
+
+                this.lb_deviceType.Items.Clear();
+
+                this.c_deployments_DeviceType.Items.Clear();
+
+                this.c_scoping_deviceType.Items.Clear();
+
+                this.cb_deploymentdeviceGroup.Items.Clear();
+
+                foreach (string aItem in globalObjects.GlobalClass.devicetypeList)
+                {
+                    // Add to the Device Group drop-down
+
+                    lb_deviceType.Items.Add(aItem);
+
+                    this.c_deployments_DeviceType.Items.Add(aItem);
+
+                    this.c_scoping_deviceType.Items.Add(aItem);
+
+                    // Add to the device properties drop-down
+
+                    this.cb_deploymentdeviceGroup.Items.Add(aItem);
+                }
 
                 try
                 {
@@ -3955,10 +4002,6 @@ namespace PatchMaster
                 {
 
                 }
-
-                lb_deviceType.Items.Remove(lb_deviceType.SelectedItem.ToString());                
-
-                globalObjects.GlobalClass.devicetypeList.Remove(devicetypeitemName);
 
                 setRegistry("PatchDeviceTypes", globalObjects.GlobalClass.devicetypeList.ToArray());
 
@@ -4763,7 +4806,7 @@ namespace PatchMaster
 
                 globalObjects.GlobalClass.checkforpatchesthreadRunning = false;
 
-                this.WindowState = FormWindowState.Normal;
+                // this.WindowState = FormWindowState.Normal;
 
                 this.Activate();
 
@@ -5240,7 +5283,7 @@ namespace PatchMaster
                         newRow.DefaultCellStyle.BackColor = Color.LightYellow;
                     }
 
-                    if (theMessage.ToLower().Contains("error") || theMessage.ToLower().Contains("failure"))
+                    if (theMessage.ToLower().Contains("error") || theMessage.ToLower().Contains("fail"))
                     {
                         newRow.DefaultCellStyle.BackColor = Color.OrangeRed;
                     }
@@ -6007,7 +6050,7 @@ namespace PatchMaster
                                                     foreach (globalObjects.deploymentItem adeploymentItem in globalObjects.GlobalClass.deploymentRules) // We'll loop through the deployment list and see if our SUG's device type matches with a rule
                                                     {
                                                         try
-                                                        {
+                                                        {                                                            
                                                             IResultObject existingCollection = globalObjects.GlobalClass.ConnectionManager.QueryProcessor.ExecuteQuery("Select * from SMS_collection where Name = '" + adeploymentItem.TargetCollection + "'");
 
                                                             string acollectionID = "";
@@ -6021,6 +6064,8 @@ namespace PatchMaster
 
                                                             foreach (string adeviceType in adeviceTypes)
                                                             {
+                                                                worker.ReportProgress(0, "Looking for deployments for device group " + adeviceType);
+
                                                                 string[] tmpdeviceType = asugItem.DeviceType.Split(',');
 
                                                                 //if (asugItem.DeviceType.Contains(adeviceType)) // Create a deployment!
@@ -6029,6 +6074,8 @@ namespace PatchMaster
                                                                 {
                                                                     try
                                                                     {
+                                                                        worker.ReportProgress(0, "   found an entry, creating deployment");
+
                                                                         IResultObject newSUMUpdatesAssignment = globalObjects.GlobalClass.ConnectionManager.CreateInstance("SMS_UpdateGroupAssignment");
 
                                                                         DateTime currentDateTime = DateTime.Now;
@@ -6231,7 +6278,8 @@ namespace PatchMaster
 
                                                                         foreach (globalObjects.deploymentProperty adeploymentProperty in globalObjects.GlobalClass.globaldeploymentpropertiesCollection)
                                                                         {
-                                                                            if (asugItem.DeviceType == adeploymentProperty.DeviceGroup)
+                                                                            if (adeviceType == adeploymentProperty.DeviceGroup)
+                                                                            //if (asugItem.DeviceType == adeploymentProperty.DeviceGroup)
                                                                             {
                                                                                 try
                                                                                 {
@@ -6482,11 +6530,11 @@ namespace PatchMaster
                                                                         {
                                                                             newSUMUpdatesAssignment.Put();
 
-                                                                            worker.ReportProgress(0, "Created Deployment for " + adeploymentItem.TargetCollection + " - " + asugItem.sugName);
+                                                                            worker.ReportProgress(0, "Created Deployment " + adeploymentItem.TargetCollection + " for " + asugItem.sugName);
                                                                         }
                                                                         catch (Exception ee)
                                                                         {
-                                                                            worker.ReportProgress(0, "Failed to create Deployment for " + adeploymentItem.TargetCollection + " - " + asugItem.sugName);
+                                                                            worker.ReportProgress(0, "Failed to create Deployment " + adeploymentItem.TargetCollection + " for " + asugItem.sugName);
 
                                                                             summaryList.Add(asugItem.sugName);
                                                                         }
@@ -6848,6 +6896,8 @@ namespace PatchMaster
 
             bool configurationIssue = false;
 
+            List<string> devicegroupsDiscovered = new List<string>();
+
             // Get all device groups, check that each device group has a) deployments and b) x2 security scopes 
 
             foreach (globalObjects.ruleItem aruleItem in globalObjects.GlobalClass.globalruleitemCollection)
@@ -6856,13 +6906,28 @@ namespace PatchMaster
 
                 bool foundDeployment = false;
 
+                List<string> devicegroupList = new List<string>(aruleItem.DeviceType.Split(','));
+
+                sharedlogMessage("  Unpacking the following Device Group " + aruleItem.DeviceType, false);
+
                 foreach (globalObjects.deploymentItem adeploymentItem in globalObjects.GlobalClass.deploymentRules)
                 {
-                    if (adeploymentItem.DeviceType == aruleItem.DeviceType)
-                    {
-                        foundDeployment = true;
+                    //if (adeploymentItem.DeviceType == aruleItem.DeviceType)
 
-                        break;
+                    foreach (string devicegroupItem in devicegroupList)
+                    {
+                        if (devicegroupList.Contains(adeploymentItem.DeviceType))
+                        {
+                            foundDeployment = true;
+
+                            sharedlogMessage("   Match found for " + adeploymentItem.DeviceType + ".", false);
+                        }
+                        else
+                        {
+                            foundDeployment = true;
+
+                            break;
+                        }
                     }
                 }
 
@@ -6879,9 +6944,12 @@ namespace PatchMaster
 
                 foreach (globalObjects.securityscopeItem asecurityscopeItem in globalObjects.GlobalClass.securityscopeRules)
                 {
-                    if (asecurityscopeItem.DeviceGroup == aruleItem.DeviceType)
+                    foreach (string devicegroupName in devicegroupList)
                     {
-                        foundSecurityScopes++;
+                        if (asecurityscopeItem.DeviceGroup == devicegroupName)
+                        {
+                            foundSecurityScopes++;
+                        }
                     }
                 }
 
@@ -6895,21 +6963,21 @@ namespace PatchMaster
 
             if (globalObjects.GlobalClass.oocTag == "")
             {
-                sharedlogMessage("  OOC Tag is empty, correct", false);
+                sharedlogMessage("  OOC Tag is empty, correct it", false);
 
                 configurationIssue = true;
             }
 
             if (globalObjects.GlobalClass.patchpathUNC == "")
             {
-                sharedlogMessage("  Patch Path is empty, correct", false);
+                sharedlogMessage("  Patch Path is empty, correct it", false);
 
                 configurationIssue = true;
             }
 
             if (globalObjects.GlobalClass.patchfolderPath == "")
             {
-                sharedlogMessage("  Patch Folder is empty, correct", false);
+                sharedlogMessage("  Patch Folder is empty,  it", false);
 
                 configurationIssue = true;
             }
@@ -6920,9 +6988,7 @@ namespace PatchMaster
 
                 configurationIssue = true;
             }
-
-
-
+                        
             if (!deploymentIssue && !securityscopeIssue && !configurationIssue)
             {
                 sharedlogMessage("Launch verification successful", false);
@@ -7354,14 +7420,35 @@ namespace PatchMaster
             {
                 // Try to catch \ on the end of packagesourcepath
 
+                string packageSource = tb_packagesourcePath.Text;
 
-                string tmpValue = tb_packagesourcePath.Text.Substring(tb_packagesourcePath.Text.LastIndexOf(@"\"));
+                if (packageSource.EndsWith(@"\"))
+                {
+                    packageSource = packageSource.Substring(0, packageSource.Length - 1);
 
-                setRegistry("PatchPackageSourceLocation", tmpValue);
+                    tb_packagesourcePath.Text = packageSource;
+                }
 
-                globalObjects.GlobalClass.uncPath = tmpValue + @"\" + tb_packageFolder.Text;
+                string packageFolder = tb_packageFolder.Text;
 
-                globalObjects.GlobalClass.patchpathUNC = tmpValue;
+                if (packageFolder.StartsWith(@"\"))
+                {
+                    packageFolder = packageFolder.Substring(1, packageFolder.Length - 1);
+
+                    tb_packageFolder.Text = packageFolder;
+                }
+                if (packageFolder.EndsWith(@"\"))
+                {
+                    packageFolder = packageFolder.Substring(0, packageFolder.Length - 1);
+
+                    tb_packageFolder.Text = packageFolder;
+                }       
+
+                setRegistry("PatchPackageSourceLocation", packageSource);
+
+                globalObjects.GlobalClass.uncPath = packageSource + @"\" + packageFolder;
+
+                globalObjects.GlobalClass.patchpathUNC = packageSource;
             }
             catch (Exception ee)
             {
@@ -7373,11 +7460,37 @@ namespace PatchMaster
         {
             try
             {
-                setRegistry("PatchPackageFolder", tb_packageFolder.Text);
+                string packageFolder = tb_packageFolder.Text;
 
-                globalObjects.GlobalClass.uncPath = tb_packagesourcePath.Text + @"\" + tb_packageFolder.Text;
+                if (packageFolder.StartsWith(@"\"))
+                {
+                    packageFolder = packageFolder.Substring(1, packageFolder.Length - 1);
 
-                globalObjects.GlobalClass.patchfolderPath = tb_packageFolder.Text;
+                    tb_packageFolder.Text = packageFolder;
+                }
+                if (packageFolder.EndsWith(@"\"))
+                {
+                    packageFolder = packageFolder.Substring(0, packageFolder.Length - 1);
+
+                    tb_packageFolder.Text = packageFolder;
+                }
+
+                setRegistry("PatchPackageFolder", packageFolder);
+
+                string packageSource = tb_packagesourcePath.Text;
+
+                if (packageSource.EndsWith("/"))
+                {
+                    packageSource = packageSource.Substring(0, packageSource.Length - 1);
+
+                    tb_packagesourcePath.Text = packageSource;
+                }
+
+                // Set the globals
+
+                globalObjects.GlobalClass.uncPath = packageSource + @"\" + packageFolder;
+
+                globalObjects.GlobalClass.patchfolderPath = packageFolder;
             }
             catch (Exception ee)
             {
@@ -8763,6 +8876,22 @@ namespace PatchMaster
         private void splitContainer2_Panel1_Paint(object sender, PaintEventArgs e)
         {
 
+        }
+
+        private void dgv_Transcript_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void tb_Config_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void dgv_distributionPoints_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)
+        {
+            dgv_distributionPoints.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.Beige;
+            dgv_distributionPoints.Rows[e.RowIndex].DefaultCellStyle.ForeColor = Color.Black;
         }
     }
 

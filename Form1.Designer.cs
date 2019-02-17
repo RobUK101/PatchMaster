@@ -344,6 +344,7 @@
             this.dgv_Transcript.Size = new System.Drawing.Size(1062, 533);
             this.dgv_Transcript.TabIndex = 8;
             this.dgv_Transcript.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_Transcript_CellClick);
+            this.dgv_Transcript.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_Transcript_CellContentClick);
             this.dgv_Transcript.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_Transcript_CellEndEdit);
             this.dgv_Transcript.DataError += new System.Windows.Forms.DataGridViewDataErrorEventHandler(this.dgv_Transcript_DataError);
             this.dgv_Transcript.RowLeave += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_Transcript_RowLeave);
@@ -808,6 +809,7 @@
             this.tb_Config.Size = new System.Drawing.Size(1069, 576);
             this.tb_Config.TabIndex = 5;
             this.tb_Config.Text = "Configure";
+            this.tb_Config.Click += new System.EventHandler(this.tb_Config_Click);
             // 
             // groupBox9
             // 
@@ -1675,7 +1677,7 @@
             this.cb_timemachine_Month.FormattingEnabled = true;
             this.cb_timemachine_Month.Items.AddRange(new object[] {
             "January",
-            "Febuary",
+            "February",
             "March",
             "April",
             "May",
@@ -1760,6 +1762,7 @@
             this.dgv_distributionPoints.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgv_distributionPoints.BackgroundColor = System.Drawing.SystemColors.ActiveCaption;
             this.dgv_distributionPoints.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgv_distributionPoints.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.c_dp_Name,
@@ -1767,6 +1770,7 @@
             this.c_dp_ID,
             this.c_dp_Sitecode,
             this.c_dp_nalPath});
+            this.dgv_distributionPoints.GridColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.dgv_distributionPoints.Location = new System.Drawing.Point(11, 52);
             this.dgv_distributionPoints.MultiSelect = false;
             this.dgv_distributionPoints.Name = "dgv_distributionPoints";
@@ -1775,6 +1779,7 @@
             this.dgv_distributionPoints.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgv_distributionPoints.Size = new System.Drawing.Size(383, 217);
             this.dgv_distributionPoints.TabIndex = 48;
+            this.dgv_distributionPoints.RowPrePaint += new System.Windows.Forms.DataGridViewRowPrePaintEventHandler(this.dgv_distributionPoints_RowPrePaint);
             // 
             // c_dp_Name
             // 
