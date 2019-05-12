@@ -2592,7 +2592,7 @@
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(234, 13);
             this.label3.TabIndex = 3;
-            this.label3.Text = "Version 1.6 - By Robert Marshall (@RobMVP)";
+            this.label3.Text = "Version 1.7 - By Robert Marshall (@RobMVP)";
             // 
             // richTextBox1
             // 
@@ -2694,7 +2694,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Patch Master - Version 1.6";
+            this.Text = "Patch Master - Version 1.7";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgv_Transcript)).EndInit();
