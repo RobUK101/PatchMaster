@@ -23,11 +23,11 @@ namespace PatchMaster
 
             try
             {
-                key = Microsoft.Win32.Registry.LocalMachine.CreateSubKey("Software\\SMSMarshall\\PatchMaster");
+                key = Microsoft.Win32.Registry.LocalMachine.CreateSubKey("Software\\SMSMarshall\\PatchMaster\\Profiles\\" + globalObjects.GlobalClass.SelectedProfile);
                 key.SetValue(registryValue, Value);
                 key.Close();
             }
-            catch (Exception e)
+            catch (Exception ee)
             {
 
             }
@@ -42,6 +42,11 @@ namespace PatchMaster
             this.DialogResult = DialogResult.OK;
 
             this.Close();
+        }
+
+        private void F_siteserverName_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

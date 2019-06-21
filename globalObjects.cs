@@ -86,6 +86,10 @@ namespace PatchMaster
 
             private static bool m_globalVar60; // Used to note whether a build out took place
 
+            private static bool m_globalVar61; // Allow package creation
+
+            private static string m_globalVar62; // Selected Profile
+
             public static string buildVersion
             {
                 get { return m_globalVar0; }
@@ -384,6 +388,18 @@ namespace PatchMaster
             {
                 get { return m_globalVar60; }
                 set { m_globalVar60 = value; }
+            }
+
+            public static bool AllowContent
+            {
+                get { return m_globalVar61; }
+                set { m_globalVar61 = value; }
+            }
+
+            public static string SelectedProfile
+            {
+                get { return m_globalVar62; }
+                set { m_globalVar62 = value; }
             }
         }
 

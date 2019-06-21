@@ -274,6 +274,7 @@ To help get you on your way:
 ·	Understand and master the Configure tab, all Device Groups have a corresponding Deployment Setting, customise away, the naming bar has been tested using the following combinations:
 
 	Textbox, Year, Month, Product, Classification (SUM - 2018 - August - Product - Classification) 
+
 	Textbox, Year, Month, Product, (SUM - 2018 - August - Product) 
 
 ·	Create Rules to define patches that are to be deployed, use the Include filter to remove unwanted patches, and use the Exclude filter to narrow the resulting patch list down further
@@ -301,6 +302,12 @@ To help get you on your way:
 ·	Failure to download patches will result in the SUG and SUP being removed, the files will remain and can be reused by PatchMaster if hashed successfully when a build is tried again
 
 ·	The Log tab is your friend, it'll mostly automatically show when PatchMaster is doing something, there is also a log in the folder PatchMaster is run from
+
+·	Split your configurations using Profiles, a profile called Default is created on startup, manage profiles in the configure tab, selected profile is set to load at next start up, select a profile and restart PatchMaster, the name of the current profile is shown in the title bar, profiles cannot be changed mid-session a restart is required
+
+·	If content is not required unselect Download content into packages on the configure tab, only the SUG and deployments will be created, this is a global setting, if you want some content to be downloaded use another profile and split things up that way
+
+·	Fallback to Microsoft updates and download over a metered connection deployment properties now working
 
 Refer to the TechNet Gallery for further information on the tool
 </value>

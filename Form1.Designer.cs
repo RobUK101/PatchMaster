@@ -74,9 +74,15 @@
             this.c_scoping_Scope = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.tc_Main = new System.Windows.Forms.TabControl();
             this.tb_Config = new System.Windows.Forms.TabPage();
+            this.groupBox10 = new System.Windows.Forms.GroupBox();
+            this.tb_newprofileName = new System.Windows.Forms.TextBox();
+            this.lb_profileList = new System.Windows.Forms.ListBox();
+            this.b_addnewProfile = new System.Windows.Forms.Button();
+            this.b_removeselectedProfile = new System.Windows.Forms.Button();
             this.groupBox9 = new System.Windows.Forms.GroupBox();
             this.b_openLog = new System.Windows.Forms.Button();
             this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this.cb_allowContent = new System.Windows.Forms.CheckBox();
             this.label15 = new System.Windows.Forms.Label();
             this.nud_downloadRetry = new System.Windows.Forms.NumericUpDown();
             this.gb_namingBar = new System.Windows.Forms.GroupBox();
@@ -232,6 +238,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgv_SecurityScopes)).BeginInit();
             this.tc_Main.SuspendLayout();
             this.tb_Config.SuspendLayout();
+            this.groupBox10.SuspendLayout();
             this.groupBox9.SuspendLayout();
             this.groupBox8.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nud_downloadRetry)).BeginInit();
@@ -794,6 +801,7 @@
             // tb_Config
             // 
             this.tb_Config.BackColor = System.Drawing.Color.Black;
+            this.tb_Config.Controls.Add(this.groupBox10);
             this.tb_Config.Controls.Add(this.groupBox9);
             this.tb_Config.Controls.Add(this.groupBox8);
             this.tb_Config.Controls.Add(this.gb_namingBar);
@@ -811,11 +819,69 @@
             this.tb_Config.Text = "Configure";
             this.tb_Config.Click += new System.EventHandler(this.tb_Config_Click);
             // 
+            // groupBox10
+            // 
+            this.groupBox10.BackColor = System.Drawing.Color.Black;
+            this.groupBox10.Controls.Add(this.tb_newprofileName);
+            this.groupBox10.Controls.Add(this.lb_profileList);
+            this.groupBox10.Controls.Add(this.b_addnewProfile);
+            this.groupBox10.Controls.Add(this.b_removeselectedProfile);
+            this.groupBox10.ForeColor = System.Drawing.SystemColors.Control;
+            this.groupBox10.Location = new System.Drawing.Point(255, 324);
+            this.groupBox10.Name = "groupBox10";
+            this.groupBox10.Size = new System.Drawing.Size(400, 117);
+            this.groupBox10.TabIndex = 68;
+            this.groupBox10.TabStop = false;
+            this.groupBox10.Text = "Profiles";
+            // 
+            // tb_newprofileName
+            // 
+            this.tb_newprofileName.Location = new System.Drawing.Point(319, 17);
+            this.tb_newprofileName.Name = "tb_newprofileName";
+            this.tb_newprofileName.Size = new System.Drawing.Size(75, 20);
+            this.tb_newprofileName.TabIndex = 3;
+            // 
+            // lb_profileList
+            // 
+            this.lb_profileList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lb_profileList.FormattingEnabled = true;
+            this.lb_profileList.Location = new System.Drawing.Point(7, 17);
+            this.lb_profileList.Name = "lb_profileList";
+            this.lb_profileList.Size = new System.Drawing.Size(306, 95);
+            this.lb_profileList.TabIndex = 2;
+            this.lb_profileList.SelectedValueChanged += new System.EventHandler(this.Lb_profileList_SelectedValueChanged);
+            // 
+            // b_addnewProfile
+            // 
+            this.b_addnewProfile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.b_addnewProfile.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.b_addnewProfile.Location = new System.Drawing.Point(319, 52);
+            this.b_addnewProfile.Name = "b_addnewProfile";
+            this.b_addnewProfile.Size = new System.Drawing.Size(75, 23);
+            this.b_addnewProfile.TabIndex = 1;
+            this.b_addnewProfile.Text = "New Profile";
+            this.b_addnewProfile.UseVisualStyleBackColor = true;
+            this.b_addnewProfile.Click += new System.EventHandler(this.B_addnewProfile_Click);
+            // 
+            // b_removeselectedProfile
+            // 
+            this.b_removeselectedProfile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.b_removeselectedProfile.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.b_removeselectedProfile.Location = new System.Drawing.Point(319, 88);
+            this.b_removeselectedProfile.Name = "b_removeselectedProfile";
+            this.b_removeselectedProfile.Size = new System.Drawing.Size(75, 23);
+            this.b_removeselectedProfile.TabIndex = 0;
+            this.b_removeselectedProfile.Text = "Delete Profile";
+            this.b_removeselectedProfile.UseVisualStyleBackColor = true;
+            this.b_removeselectedProfile.Click += new System.EventHandler(this.B_removeselectedProfile_Click);
+            // 
             // groupBox9
             // 
             this.groupBox9.Controls.Add(this.b_openLog);
             this.groupBox9.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.groupBox9.Location = new System.Drawing.Point(154, 505);
+            this.groupBox9.Location = new System.Drawing.Point(318, 506);
             this.groupBox9.Name = "groupBox9";
             this.groupBox9.Size = new System.Drawing.Size(60, 55);
             this.groupBox9.TabIndex = 67;
@@ -835,30 +901,42 @@
             // 
             // groupBox8
             // 
+            this.groupBox8.Controls.Add(this.cb_allowContent);
             this.groupBox8.Controls.Add(this.label15);
             this.groupBox8.Controls.Add(this.nud_downloadRetry);
             this.groupBox8.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.groupBox8.Location = new System.Drawing.Point(9, 506);
             this.groupBox8.Name = "groupBox8";
-            this.groupBox8.Size = new System.Drawing.Size(139, 54);
+            this.groupBox8.Size = new System.Drawing.Size(303, 54);
             this.groupBox8.TabIndex = 66;
             this.groupBox8.TabStop = false;
             this.groupBox8.Text = "Download Settings";
+            // 
+            // cb_allowContent
+            // 
+            this.cb_allowContent.AutoSize = true;
+            this.cb_allowContent.Location = new System.Drawing.Point(111, 23);
+            this.cb_allowContent.Name = "cb_allowContent";
+            this.cb_allowContent.Size = new System.Drawing.Size(183, 17);
+            this.cb_allowContent.TabIndex = 37;
+            this.cb_allowContent.Text = "Download content into packages";
+            this.cb_allowContent.UseVisualStyleBackColor = true;
+            this.cb_allowContent.CheckedChanged += new System.EventHandler(this.Cb_allowContent_CheckedChanged);
             // 
             // label15
             // 
             this.label15.AutoSize = true;
             this.label15.Location = new System.Drawing.Point(10, 24);
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(61, 13);
+            this.label15.Size = new System.Drawing.Size(46, 13);
             this.label15.TabIndex = 1;
-            this.label15.Text = "Failure retry";
+            this.label15.Text = "Fail retry";
             // 
             // nud_downloadRetry
             // 
-            this.nud_downloadRetry.Location = new System.Drawing.Point(73, 22);
+            this.nud_downloadRetry.Location = new System.Drawing.Point(60, 22);
             this.nud_downloadRetry.Name = "nud_downloadRetry";
-            this.nud_downloadRetry.Size = new System.Drawing.Size(52, 20);
+            this.nud_downloadRetry.Size = new System.Drawing.Size(36, 20);
             this.nud_downloadRetry.TabIndex = 0;
             this.nud_downloadRetry.Value = new decimal(new int[] {
             6,
@@ -1072,23 +1150,23 @@
             this.groupBox7.Controls.Add(this.cb_rollupclientOS);
             this.groupBox7.Controls.Add(this.cb_createreportingSUGS);
             this.groupBox7.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.groupBox7.Location = new System.Drawing.Point(220, 506);
+            this.groupBox7.Location = new System.Drawing.Point(384, 506);
             this.groupBox7.Name = "groupBox7";
-            this.groupBox7.Size = new System.Drawing.Size(435, 54);
+            this.groupBox7.Size = new System.Drawing.Size(271, 54);
             this.groupBox7.TabIndex = 63;
             this.groupBox7.TabStop = false;
-            this.groupBox7.Text = "Reporting";
+            this.groupBox7.Text = "Reporting - Rollups";
             // 
             // cb_rollupOffice
             // 
             this.cb_rollupOffice.AutoSize = true;
             this.cb_rollupOffice.Checked = true;
             this.cb_rollupOffice.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cb_rollupOffice.Location = new System.Drawing.Point(319, 23);
+            this.cb_rollupOffice.Location = new System.Drawing.Point(209, 23);
             this.cb_rollupOffice.Name = "cb_rollupOffice";
-            this.cb_rollupOffice.Size = new System.Drawing.Size(87, 17);
+            this.cb_rollupOffice.Size = new System.Drawing.Size(54, 17);
             this.cb_rollupOffice.TabIndex = 3;
-            this.cb_rollupOffice.Text = "Rollup Office";
+            this.cb_rollupOffice.Text = "Office";
             this.cb_rollupOffice.UseVisualStyleBackColor = true;
             this.cb_rollupOffice.CheckedChanged += new System.EventHandler(this.cb_rollupOffice_CheckedChanged);
             // 
@@ -1097,11 +1175,11 @@
             this.cb_rollupserverOS.AutoSize = true;
             this.cb_rollupserverOS.Checked = true;
             this.cb_rollupserverOS.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cb_rollupserverOS.Location = new System.Drawing.Point(223, 23);
+            this.cb_rollupserverOS.Location = new System.Drawing.Point(153, 23);
             this.cb_rollupserverOS.Name = "cb_rollupserverOS";
-            this.cb_rollupserverOS.Size = new System.Drawing.Size(90, 17);
+            this.cb_rollupserverOS.Size = new System.Drawing.Size(57, 17);
             this.cb_rollupserverOS.TabIndex = 2;
-            this.cb_rollupserverOS.Text = "Rollup Server";
+            this.cb_rollupserverOS.Text = "Server";
             this.cb_rollupserverOS.UseVisualStyleBackColor = true;
             this.cb_rollupserverOS.CheckedChanged += new System.EventHandler(this.cb_rollupserverOS_CheckedChanged);
             // 
@@ -1110,11 +1188,11 @@
             this.cb_rollupclientOS.AutoSize = true;
             this.cb_rollupclientOS.Checked = true;
             this.cb_rollupclientOS.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cb_rollupclientOS.Location = new System.Drawing.Point(132, 23);
+            this.cb_rollupclientOS.Location = new System.Drawing.Point(95, 23);
             this.cb_rollupclientOS.Name = "cb_rollupclientOS";
-            this.cb_rollupclientOS.Size = new System.Drawing.Size(85, 17);
+            this.cb_rollupclientOS.Size = new System.Drawing.Size(52, 17);
             this.cb_rollupclientOS.TabIndex = 1;
-            this.cb_rollupclientOS.Text = "Rollup Client";
+            this.cb_rollupclientOS.Text = "Client";
             this.cb_rollupclientOS.UseVisualStyleBackColor = true;
             this.cb_rollupclientOS.CheckedChanged += new System.EventHandler(this.cb_rollupclientOS_CheckedChanged);
             // 
@@ -1123,11 +1201,11 @@
             this.cb_createreportingSUGS.AutoSize = true;
             this.cb_createreportingSUGS.Checked = true;
             this.cb_createreportingSUGS.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cb_createreportingSUGS.Location = new System.Drawing.Point(6, 23);
+            this.cb_createreportingSUGS.Location = new System.Drawing.Point(9, 23);
             this.cb_createreportingSUGS.Name = "cb_createreportingSUGS";
-            this.cb_createreportingSUGS.Size = new System.Drawing.Size(120, 17);
+            this.cb_createreportingSUGS.Size = new System.Drawing.Size(87, 17);
             this.cb_createreportingSUGS.TabIndex = 0;
-            this.cb_createreportingSUGS.Text = "Rollup Classification";
+            this.cb_createreportingSUGS.Text = "Classification";
             this.cb_createreportingSUGS.UseVisualStyleBackColor = true;
             this.cb_createreportingSUGS.CheckedChanged += new System.EventHandler(this.cb_createreportingSUGS_CheckedChanged);
             // 
@@ -1401,6 +1479,7 @@
             // cb_deployment_enableWOL
             // 
             this.cb_deployment_enableWOL.AutoSize = true;
+            this.cb_deployment_enableWOL.BackColor = System.Drawing.Color.Black;
             this.cb_deployment_enableWOL.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cb_deployment_enableWOL.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.cb_deployment_enableWOL.Location = new System.Drawing.Point(6, 71);
@@ -1408,7 +1487,7 @@
             this.cb_deployment_enableWOL.Size = new System.Drawing.Size(87, 17);
             this.cb_deployment_enableWOL.TabIndex = 11;
             this.cb_deployment_enableWOL.Text = "Enable WOL";
-            this.cb_deployment_enableWOL.UseVisualStyleBackColor = true;
+            this.cb_deployment_enableWOL.UseVisualStyleBackColor = false;
             this.cb_deployment_enableWOL.CheckedChanged += new System.EventHandler(this.cb_deployment_enableWOL_CheckedChanged);
             // 
             // cb_deployment_allowMetered
@@ -1526,6 +1605,7 @@
             // cb_deployment_delayEnforcement
             // 
             this.cb_deployment_delayEnforcement.AutoSize = true;
+            this.cb_deployment_delayEnforcement.BackColor = System.Drawing.Color.Black;
             this.cb_deployment_delayEnforcement.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cb_deployment_delayEnforcement.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.cb_deployment_delayEnforcement.Location = new System.Drawing.Point(6, 94);
@@ -1533,7 +1613,7 @@
             this.cb_deployment_delayEnforcement.Size = new System.Drawing.Size(116, 17);
             this.cb_deployment_delayEnforcement.TabIndex = 0;
             this.cb_deployment_delayEnforcement.Text = "Delay Enforcement";
-            this.cb_deployment_delayEnforcement.UseVisualStyleBackColor = true;
+            this.cb_deployment_delayEnforcement.UseVisualStyleBackColor = false;
             this.cb_deployment_delayEnforcement.CheckedChanged += new System.EventHandler(this.cb_deployment_delayEnforcement_CheckedChanged);
             // 
             // groupBox5
@@ -1737,7 +1817,7 @@
             this.groupBox2.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.groupBox2.Location = new System.Drawing.Point(255, 162);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(400, 279);
+            this.groupBox2.Size = new System.Drawing.Size(400, 156);
             this.groupBox2.TabIndex = 58;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Distribution Points";
@@ -1777,7 +1857,7 @@
             this.dgv_distributionPoints.ReadOnly = true;
             this.dgv_distributionPoints.RowHeadersVisible = false;
             this.dgv_distributionPoints.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgv_distributionPoints.Size = new System.Drawing.Size(383, 217);
+            this.dgv_distributionPoints.Size = new System.Drawing.Size(383, 96);
             this.dgv_distributionPoints.TabIndex = 48;
             this.dgv_distributionPoints.RowPrePaint += new System.Windows.Forms.DataGridViewRowPrePaintEventHandler(this.dgv_distributionPoints_RowPrePaint);
             // 
@@ -2705,6 +2785,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgv_SecurityScopes)).EndInit();
             this.tc_Main.ResumeLayout(false);
             this.tb_Config.ResumeLayout(false);
+            this.groupBox10.ResumeLayout(false);
+            this.groupBox10.PerformLayout();
             this.groupBox9.ResumeLayout(false);
             this.groupBox8.ResumeLayout(false);
             this.groupBox8.PerformLayout();
@@ -2963,6 +3045,12 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn c_log_Text;
         private System.Windows.Forms.CheckBox cb_forceScan;
         private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.CheckBox cb_allowContent;
+        private System.Windows.Forms.GroupBox groupBox10;
+        private System.Windows.Forms.ListBox lb_profileList;
+        private System.Windows.Forms.Button b_addnewProfile;
+        private System.Windows.Forms.Button b_removeselectedProfile;
+        private System.Windows.Forms.TextBox tb_newprofileName;
     }
 }
 

@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 using System.IO;
+using Microsoft.Win32;
 
 namespace PatchMaster
 {
@@ -134,9 +130,66 @@ namespace PatchMaster
             }
         }
 
+        private object getregistryNormal(string registryValue)
+        {
+            // Modified in 1.7 to handle Profiles
+            try
+            {
+                var Value = Registry.GetValue("HKEY_LOCAL_MACHINE\\Software\\SMSMarshall\\PatchMaster", registryValue, "");
+
+                return Value;
+            }
+            catch (Exception e)
+            {
+
+            }
+
+            return "";
+        }
+
+        private void setregistryNormal(string registryValue, object Value)
+        {
+            Microsoft.Win32.RegistryKey key;
+
+            try
+            {
+                key = Microsoft.Win32.Registry.LocalMachine.CreateSubKey("Software\\SMSMarshall\\PatchMaster");
+                key.SetValue(registryValue, Value);
+                key.Close();
+            }
+            catch (Exception ee)
+            {
+                
+            }
+        }
+
         private void Splash_Load(object sender, EventArgs e)
         {
-            globalObjects.GlobalClass.buildVersion = "1.6";
+            // Build Version
+
+            globalObjects.GlobalClass.buildVersion = "1.7";
+
+            // Get the selected profile from the registry (not using getRegistry as it is restricted to \\PROFILES registry key)
+
+            try
+            {
+                globalObjects.GlobalClass.SelectedProfile = (string)getregistryNormal("PatchProfile");
+            }
+            catch (Exception ee)
+            {
+                globalObjects.GlobalClass.SelectedProfile = "Default";
+
+                setregistryNormal("PatchProfile", "Default");
+            }
+
+            if (globalObjects.GlobalClass.SelectedProfile == null || globalObjects.GlobalClass.SelectedProfile == "")
+            {
+                globalObjects.GlobalClass.SelectedProfile = "Default";
+
+                setregistryNormal("PatchProfile", "Default");
+            }
+
+            // Imagery
 
             pb_thugLife.Image = loadimagefromString(thugLife);
 

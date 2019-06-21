@@ -67,6 +67,7 @@
             this.Name = "f_siteserverName";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Enter SMS Provider \\ Site name";
+            this.Load += new System.EventHandler(this.F_siteserverName_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

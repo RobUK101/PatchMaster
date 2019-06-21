@@ -8,6 +8,8 @@
 
 // Use as you see fit, but I ask if you make use of the project ping me a shout on twitter @robmvp
 
+// Note: Version number is set in splash.cs
+
 using System;
 using System.Net;
 using System.Collections.Generic;
@@ -364,6 +366,8 @@ namespace PatchMaster
                         if (languageTable[i,0] == languageName)
                         {
                             returnValue = returnValue + "," + languageTable[i, 1];
+
+                            break;
                         }
                     }
                 }
@@ -371,8 +375,6 @@ namespace PatchMaster
 
             return returnValue;
         }
-
-
 
         private void getwsusconfigLanguages(BackgroundWorker theWorker)
         {
@@ -387,12 +389,6 @@ namespace PatchMaster
                     awsulanguageItem.languageName = aLanguage["LocalizedCategoryInstanceName"].StringValue;
 
                     globalwsusLanguages.Add(awsulanguageItem);
-
-                    Debug.WriteLine(awsulanguageItem);
-
-                    Console.WriteLine(awsulanguageItem);
-
-                    Debug.Write("AAAA");
                 }
 
                 theWorker.ReportProgress(0, " Retrieved " + globalwsusLanguages.Count + " Languages");
@@ -583,7 +579,7 @@ namespace PatchMaster
             }
         }
 
-        private void setRegistry(string registryValue, object Value)
+        private void setregistryNormal(string registryValue, object Value)
         {
             Microsoft.Win32.RegistryKey key;
 
@@ -599,11 +595,46 @@ namespace PatchMaster
             }
         }
 
-        private object getRegistry(string registryValue)
+
+        private void setRegistry(string registryValue, object Value)
         {
+            Microsoft.Win32.RegistryKey key;
+
+            try
+            {
+                key = Microsoft.Win32.Registry.LocalMachine.CreateSubKey("Software\\SMSMarshall\\PatchMaster\\Profiles\\" + globalObjects.GlobalClass.SelectedProfile);
+                key.SetValue(registryValue, Value);
+                key.Close();
+            }
+            catch (Exception ee)
+            {
+                sharedlogMessage("Could not write to the Registry - " + ee.Message, false);
+            }
+        }
+
+        private object getregistryNormal(string registryValue)
+        {
+            // Modified in 1.7 to handle Profiles
             try
             {
                 var Value = Registry.GetValue("HKEY_LOCAL_MACHINE\\Software\\SMSMarshall\\PatchMaster", registryValue, "");
+
+                return Value;
+            }
+            catch (Exception e)
+            {
+
+            }
+
+            return "";
+        }
+
+        private object getRegistry(string registryValue)
+        {
+            // Modified in 1.7 to handle Profiles
+            try
+            {
+                var Value = Registry.GetValue("HKEY_LOCAL_MACHINE\\Software\\SMSMarshall\\PatchMaster\\Profiles\\" + globalObjects.GlobalClass.SelectedProfile, registryValue, "");                    
 
                 return Value;
             }
@@ -619,13 +650,22 @@ namespace PatchMaster
         {
             try
             {
-                if (getRegistry("PatchDeviceTypes") == "")
-                {
-                    globalObjects.GlobalClass.devicetypeList.Add("Client");
-                    globalObjects.GlobalClass.devicetypeList.Add("ThinClient");
-                    globalObjects.GlobalClass.devicetypeList.Add("Server");
+                var returnValue = getRegistry("PatchDeviceTypes");
 
-                    setRegistry("PatchDeviceTypes", globalObjects.GlobalClass.devicetypeList.ToArray());
+                try
+                {
+                    if ((string)returnValue == "")
+                    {
+                        globalObjects.GlobalClass.devicetypeList.Add("Client");
+                        globalObjects.GlobalClass.devicetypeList.Add("ThinClient");
+                        globalObjects.GlobalClass.devicetypeList.Add("Server");
+
+                        setRegistry("PatchDeviceTypes", globalObjects.GlobalClass.devicetypeList.ToArray());
+                    }
+                }
+                catch (Exception ee)
+                {
+
                 }
 
                 string[] devicetypeList = (string[])getRegistry("PatchDeviceTypes");
@@ -1439,7 +1479,7 @@ namespace PatchMaster
         }
 
         private void getconfigRegistry() // Fetch configuration from the registry HKEY_LOCAL_MACHINE\Software\SMSMarshall\PatchMaster
-        {
+        {                       
             // Validate version
 
             string theproductVersion = (string)getRegistry("PatchVersion");
@@ -1455,6 +1495,44 @@ namespace PatchMaster
                 // Cleanup various keys that have been modified between this version and the previous
 
                 setRegistry("PatchVersion", globalObjects.GlobalClass.buildVersion); // Brand with current version            
+            }
+
+            // get Allow Content creation value
+
+            try
+            {
+                globalObjects.GlobalClass.AllowContent = false;
+
+                string tmpallowContent = (string)getRegistry("PatchAllowContent");
+
+                if (tmpallowContent == "")
+                {
+                    globalObjects.GlobalClass.AllowContent = true;
+
+                    setRegistry("PatchAllowContent", "True");
+
+                    cb_allowContent.Checked = true;
+                }
+                else
+                {
+                    try
+                    {
+                        globalObjects.GlobalClass.AllowContent = Convert.ToBoolean(tmpallowContent);
+
+                        cb_allowContent.Checked = Convert.ToBoolean(tmpallowContent);
+                    }
+                    catch (Exception ee)
+                    {
+                        globalObjects.GlobalClass.AllowContent = true;
+
+                        cb_allowContent.Checked = true;
+
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+
             }
 
             /// get force refresh of ConfigMgr patch cache
@@ -1906,7 +1984,7 @@ namespace PatchMaster
 
             bool localconnectionSuccess = false;
 
-            if (globalObjects.GlobalClass.serverName.ToLower() == "") // try a local connection before pestering the user
+            if (globalObjects.GlobalClass.serverName == "") // try a local connection before pestering the user
             {
                 try
                 {
@@ -2089,13 +2167,47 @@ namespace PatchMaster
             return null;
         }
 
+        private void getregistryProfiles()
+        {
+            lb_profileList.Items.Clear();
+
+            try
+            {
+                using (Microsoft.Win32.RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\SMSMarshall\PatchMaster\Profiles"))
+                {
+                    foreach (String profileName in key.GetSubKeyNames())
+                    {
+                        lb_profileList.Items.Add(profileName);
+                    }
+                }
+            }
+            catch (Exception ee)
+            {
+
+            }
+            try
+            {
+                lb_profileList.SetSelected(lb_profileList.FindString(globalObjects.GlobalClass.SelectedProfile), true);
+            }
+            catch (Exception ee)
+            {
+
+            }
+        }
+
         private void Launch()
         {
             globalObjects.GlobalClass.GlobalTimeMachine = false;
 
-            // Check if we're silent running
+            // Now set the application title bar text to show the profile that will be used
 
-            // globalObjects.GlobalClass.SilentRunning = true;
+            this.Text = this.Text + " - Profile loaded: " + globalObjects.GlobalClass.SelectedProfile;
+
+            // Populate the profile list box with profiles from the registry
+
+            getregistryProfiles();
+
+            // Check if we're silent running
 
             if (globalObjects.GlobalClass.SilentRunning)
             {
@@ -2815,83 +2927,6 @@ namespace PatchMaster
         {
             e.Cancel = true;
         }
-
-        // Trying to eliminate dependence on dgv for rules
-
-        //private globalObjects.ruleitemCollection buildruleCollection(DataGridViewRowCollection theTranscripts)
-        //{
-        //    try
-        //    {
-        //        globalObjects.ruleitemCollection aruleCollection = new globalObjects.ruleitemCollection(); // Prepare the Rule Collection
-
-        //        foreach (DataGridViewRow aRow in theTranscripts)
-        //        {
-        //            try
-        //            {
-        //                if (aRow.Cells["c_transcript_deviceType"].Value != null)
-        //                {
-        //                    // Get properties, if they are null it should fire an exception
-
-        //                    string tmpdeviceType = aRow.Cells["c_transcript_deviceType"].Value.ToString();
-        //                    string tmpArchitecture = aRow.Cells["c_transcript_Architecture"].Value.ToString();
-        //                    string tmpProducts = aRow.Cells["c_transcript_Product"].Value.ToString();
-        //                    string tmpClassifications = aRow.Cells["c_transcript_Classifications"].Value.ToString();
-        //                    string tmpLanguages = aRow.Cells["c_transcript_Languages"].Value.ToString();
-
-        //                    string tmpignoreBuilds = ""; // Get IgnoreBuilds, tolerate it being null
-
-        //                    if (aRow.Cells["c_transcript_ignoreBuilds"].Value != null)
-        //                    {
-        //                        tmpignoreBuilds = aRow.Cells["c_transcript_ignoreBuilds"].Value.ToString();
-        //                    }
-
-        //                    string tmpincludeRule = ""; // Get include rules, tolerate it being null
-
-        //                    if (aRow.Cells["c_transcript_includeRule"].Value != null)
-        //                    {
-        //                        tmpincludeRule = aRow.Cells["c_transcript_includeRule"].Value.ToString();
-        //                    }
-
-        //                    // Set Mandatory values to null if they are returned as an empty string, this is so that an exception will occur when adding to the rule collection
-
-        //                    if (aRow.Cells["c_transcript_ignoreBuilds"].Value == null)
-        //                    {
-        //                        tmpignoreBuilds = "";
-        //                    }
-
-        //                    globalObjects.ruleItem aruleItem = new globalObjects.ruleItem();
-
-        //                    aruleItem.DeviceType = tmpdeviceType.ToString();
-        //                    aruleItem.Architectures = tmpArchitecture.ToString();
-        //                    aruleItem.Products = tmpProducts.ToString();
-        //                    aruleItem.ExcludeRule = tmpignoreBuilds.ToString();
-        //                    aruleItem.IncludeRule = tmpincludeRule.ToString();
-        //                    aruleItem.Classifications = tmpClassifications.ToString();
-        //                    aruleItem.Languages = tmpLanguages.ToString();
-
-        //                    if (aruleItem.DeviceType != "" && aruleItem.Architectures != "" && aruleItem.Products != "" && aruleItem.Classifications != "")
-        //                    {
-        //                        aruleCollection.Add(aruleItem);
-        //                    }
-        //                }
-        //            }
-        //            catch (Exception ee)
-        //            {
-        //                sharedlogMessage(@"Warning: One of the Ruleset rules contains a null\empty column, correct it - " + aRow.Index.ToString());
-        //            }
-
-        //        }
-
-
-        //        return aruleCollection;
-        //    }
-        //    catch (Exception ee)
-        //    {
-        //        string sds = ee.Message;
-        //    }
-
-        //    return null;
-        //}
 
         private globalObjects.securityscopeCollection buildsecurityscopeCollection(DataGridViewRowCollection theTranscripts)
         {
@@ -4150,20 +4185,20 @@ namespace PatchMaster
             {
             }
 
-            worker.ReportProgress(0, "Checking for WSUS Management capability");
+            //worker.ReportProgress(0, "Checking for WSUS Management capability");
 
             string senseWSUS = getwsusupdateserver();
 
             if (senseWSUS == "true")
             {
-                worker.ReportProgress(0, "Found WSUS Management assembly");
+                //worker.ReportProgress(0, "Found WSUS Management assembly");
             }
             else
             {
-                worker.ReportProgress(0, "Couldn't find WSUS Management assembly - " + senseWSUS);
+                //worker.ReportProgress(0, "Non-critical: Couldn't find WSUS Management assembly - " + senseWSUS);
             }
 
-            worker.ReportProgress(0, "Retrieving WSUS Products, Classifications and Languages");
+            worker.ReportProgress(0, "Retrieving ConfigMgr Products, Classifications and Languages");
 
             getwsusConfig(worker);
 
@@ -4257,17 +4292,6 @@ namespace PatchMaster
                         c_scoping_Scope.Items.Add(securityScope.securityscopeName);
                     }
                 }                
-
-                // Store SUG Name rendering bar format
-
-                //if (!globalObjects.GlobalClass.SilentRunning)
-                //{
-                    //buildsugnameFormat();
-                //}
-
-                // Build SUG Name Preview
-
-                //buildPreview();
 
                 globalObjects.GlobalClass.loadthreadRunning = false;
 
@@ -4515,8 +4539,7 @@ namespace PatchMaster
             worker.ReportProgress(0, "Completed removal of superseded patches from SUGs and SUPs");
             worker.ReportProgress(0, "----------------------------------------------------------");
         }
-
-
+        
         private void bw_sumcleanupDetect_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if ((e.Cancelled == true))
@@ -4528,7 +4551,7 @@ namespace PatchMaster
 
             }
 
-            // I am trying to clean up how the superceded patches are removed, when calling dection i need to accept true\false and spawn the cleanup, so that build and auto cleanup can work
+            // I am trying to clean up how the superceded patches are removed, when calling detection i need to accept true\false and spawn the cleanup, so that build and auto cleanup can work
 
             if (!globalObjects.GlobalClass.SilentRunning)
             {
@@ -4778,8 +4801,6 @@ namespace PatchMaster
 
             if (theHash.ToLower().Contains("sha256")) // Treat as Sha256
             {
-                //var message = System.Text.Encoding.UTF8.GetBytes(strData);
-
                 SHA256Managed hashString = new SHA256Managed();
 
                 using (hashString)
@@ -4905,11 +4926,7 @@ namespace PatchMaster
 
                 globalObjects.GlobalClass.checkforpatchesthreadRunning = false;
 
-                // this.WindowState = FormWindowState.Normal;
-
                 this.Activate();
-
-                // buildPreview(); // Update the Build Preview *****
 
                 if (globalObjects.GlobalClass.SilentRunning) // Begin the automated build out
                 {
@@ -4972,10 +4989,7 @@ namespace PatchMaster
             }
             else if (e.UserState.GetType() == typeof(String[]))
             {
-                //foreach (string ignorepatchString in (Array)e.UserState)
-                //{
                 sharedlogMessage((String[])e.UserState, true);
-                //}
             }
         }
 
@@ -5123,8 +5137,6 @@ namespace PatchMaster
 
                                     aignorepatchesItem.PatchKB = aPatch.ArticleID;
                                     aignorepatchesItem.DisplayName = aPatch.LocalizedDisplayName;
-
-                                    //aignorepatchesItem.Product = foundproductName; // *** Major change here - somehow i need to determine the OS the patch is for, problem is a patch can be for multiple OS's such as the malicious software tool
 
                                     aignorepatchesItem.Product = foundproductName; // *** 
 
@@ -5282,7 +5294,7 @@ namespace PatchMaster
 
                 formattedDate = datetimenow.ToString(formattedDate);
 
-                //formattedTime = "01:16:03.939-60";
+                // formatted Time = "01:16:03.939-60";
 
                 string patchmasterprocessName = "";
 
@@ -5444,9 +5456,7 @@ namespace PatchMaster
         {
             // DeviceGroup has to be better handled, .Contains isn't usable as win7 and win7-canarie will throw a match for win7
             // I was tweaking sugitem.DeviceGroup to contain Win7,Win7-Canaries and then tracing through the code to see what wasn't honouring the split of the devicegroup and processing properly
-            // ************
-
-
+            
             BackgroundWorker worker = sender as BackgroundWorker;
 
             if (globalObjects.GlobalClass.checkforpatchesthreadRunning)
@@ -5553,8 +5563,6 @@ namespace PatchMaster
 
                                 IResultObject updateGroup = null;
 
-                                //IResultObject updateGroup = globalObjects.GlobalClass.ConnectionManager.CreateInstance("SMS_AuthorizationList");
-
                                 try
                                 {
                                     // Check if update group is reporting, if it exists then get a handle on it, if it is deployment assume it is unique
@@ -5566,8 +5574,6 @@ namespace PatchMaster
                                         var updateGroups = globalObjects.GlobalClass.ConnectionManager.QueryProcessor.ExecuteQuery("select * from SMS_AuthorizationList where LocalizedDisplayName = '" + asugItem.sugName + "'");
 
                                         Int32 sugCIID = 0;
-
-                                        // string dfsdfds = updateGroups["LocalizedDisplayName"].StringValue;
 
                                         try
                                         {
@@ -5779,6 +5785,8 @@ namespace PatchMaster
 
                                         // At this point we check if the SUG Item is Reporting or Deployment
 
+                                        List<string> downloadfailureList = new List<string>(); // Used to store patch names for those that fail to download
+
                                         if (asugItem.SUGType == "Deployment") // Only get underway with this SUG Item if it is a Deployment SUG
                                         {
                                             // Authorising the licence for any in-scope Software Updates that require it
@@ -5825,359 +5833,391 @@ namespace PatchMaster
                                                 }
                                             }
 
-                                            worker.ReportProgress(0, "Preparing files for download for " + asugItem.sugName);
-
-                                            List<string> downloadfailureList = new List<string>(); // Used to store patch names for those that fail to download
-
-                                            foreach (globalObjects.patchcontentIDs apatchcontentIDs in sugcontentidsCollection) // Obtain the SMS_CIContentFiles class instances
+                                            if (globalObjects.GlobalClass.AllowContent)
                                             {
-                                                IResultObject contentfileList = globalObjects.GlobalClass.ConnectionManager.QueryProcessor.ExecuteQuery("Select * from SMS_CIContentFiles where ContentID = '" + apatchcontentIDs.ContentID + "' AND SMS_CIContentFiles.LanguageID IN (" + convertLanguagesToIDs(asugItem.Languages) + ")");
+                                                worker.ReportProgress(0, "Preparing files for download for " + asugItem.sugName);
 
-                                                foreach (IResultObject acontentFile in contentfileList)
+                                                foreach (globalObjects.patchcontentIDs apatchcontentIDs in sugcontentidsCollection) // Obtain the SMS_CIContentFiles class instances
                                                 {
-                                                    int contentID = acontentFile["ContentID"].IntegerValue;
-                                                    string patchfolderName = apatchcontentIDs.ContentUniqueID;
-                                                    string patchURL = acontentFile["SourceURL"].StringValue;
-                                                    string patchFilename = acontentFile["FileName"].StringValue;
-                                                    string patchHash = acontentFile["FileHash"].StringValue;
+                                                    IResultObject contentfileList = globalObjects.GlobalClass.ConnectionManager.QueryProcessor.ExecuteQuery("Select * from SMS_CIContentFiles where ContentID = '" + apatchcontentIDs.ContentID + "'");
 
-                                                    // Language validation for files with known language codes in their filename
-
-                                                    if (!approvedlanguagePresent(patchFilename))
+                                                    foreach (IResultObject acontentFile in contentfileList)
                                                     {
-                                                        break;
-                                                    }
+                                                        int contentID = acontentFile["ContentID"].IntegerValue;
+                                                        string patchfolderName = apatchcontentIDs.ContentUniqueID;
+                                                        string patchURL = acontentFile["SourceURL"].StringValue;
+                                                        string patchFilename = acontentFile["FileName"].StringValue;
+                                                        string patchHash = acontentFile["FileHash"].StringValue;
 
-                                                    try // Prepare the download folder
-                                                    {
-                                                        // Check if the filename contains a Path
+                                                        string patchLanguage = "";
 
-                                                        if (patchFilename.Contains(@"\")) // Append the extended path info onto pathfolderName
+                                                        try
                                                         {
-                                                            int lastSlash = patchFilename.LastIndexOf(@"\");
-
-                                                            string[] folderpathInfo = new string[] { patchFilename.Substring(0, lastSlash), patchFilename.Substring(lastSlash + 1) };
-
-                                                            patchfolderName = String.Concat(patchfolderName, @"\", folderpathInfo[0]);
-
-                                                            patchFilename = folderpathInfo[1];
+                                                            patchLanguage = acontentFile["LanguageID"].StringValue;
+                                                        }
+                                                        catch (Exception ee)
+                                                        {
+                                                        
                                                         }
 
-                                                        worker.ReportProgress(0, "Creating Download Folder " + globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + " for ContentID " + apatchcontentIDs.ContentID);
+                                                        bool ignorethisPatch = false;
 
-                                                        System.IO.Directory.CreateDirectory(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName);
+                                                        // Check if this is an Office patch, if it is check if the language is in scope otherwise ignore this specific patch
 
-                                                        // Add to the contentID and contentPath arrays
-
-                                                        thecontentIDs.Add(Convert.ToInt32(contentID));
-
-                                                        thecontentPaths.Add(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName);
-
-                                                        // Download the file or reuse if already downloaded
-
-                                                        int retryCount = 6;
-
-                                                        for (int i = 0; i < Convert.ToInt16(globalObjects.GlobalClass.DownloadFailureRetry); i++) // Retry the download if the hash cannot be validated
+                                                        if (patchFilename.ToLower().Contains("office") && patchFilename.Contains(@"\"))
                                                         {
-                                                            bool reuseFile = false;
+                                                            List<string> tmplanguageList = convertLanguagesToIDs(asugItem.Languages).Split(',').ToList();
 
-                                                            worker.ReportProgress(0, "Downloading file " + patchFilename);
-
-                                                            if (File.Exists(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + @"\" + patchFilename)) // Check if it exists, hash check it, use it if valid
+                                                            if (!tmplanguageList.Contains(patchLanguage)) // Winner winner chicken dinner, its an Office365\Office 2019 patch and is in scope of the approved languages
                                                             {
-                                                                worker.ReportProgress(0, "  File already exists, verifying hash");
-
-                                                                if (patchHash == null)
-                                                                {
-                                                                    worker.ReportProgress(0, "    WARNING: Hash not supplied by Microsoft, unable to verifying hash, proceeding to use downloaded file");
-
-                                                                    reuseFile = true;
-                                                                }
-                                                                else
-                                                                {
-                                                                    if (hashcheckFile(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + @"\" + patchFilename, patchHash))
-                                                                    {
-                                                                        worker.ReportProgress(0, "  Hash verified, using already downloaded content");
-
-                                                                        reuseFile = true;
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        worker.ReportProgress(0, "  Hash failure, removing already downloaded content");
-
-                                                                        try // Remove the old file
-                                                                        {
-                                                                            File.Delete(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + @"\" + patchFilename);
-                                                                        }
-                                                                        catch (Exception ee)
-                                                                        {
-
-                                                                        }
-                                                                    }
-                                                                }
+                                                                ignorethisPatch = true;
                                                             }
+                                                        }
 
-                                                            if (reuseFile)
+                                                        if (!ignorethisPatch)
+                                                        {
+
+                                                            try // Prepare the download folder
                                                             {
-                                                                worker.ReportProgress(0, "File downloaded");
+                                                                // Check if the filename contains a Path
 
-                                                                downloadfailureList.Remove(patchfolderName + @"\" + patchFilename); // Remove the patch from the download failure list, if it is present
-
-                                                                break;
-                                                            }
-                                                            else
-                                                            {
-                                                                try
+                                                                if (patchFilename.Contains(@"\")) // Append the extended path info onto pathfolderName
                                                                 {
-                                                                    HttpWebRequest httpRequest = (HttpWebRequest)WebRequest.Create(patchURL);
+                                                                    int lastSlash = patchFilename.LastIndexOf(@"\");
 
-                                                                    HttpWebRequest httpfilesizeRequest = (HttpWebRequest)WebRequest.Create(patchURL);
+                                                                    string[] folderpathInfo = new string[] { patchFilename.Substring(0, lastSlash), patchFilename.Substring(lastSlash + 1) };
 
-                                                                    httpRequest.Method = WebRequestMethods.Http.Get;
+                                                                    patchfolderName = String.Concat(patchfolderName, @"\", folderpathInfo[0]);
 
-                                                                    httpRequest.AllowAutoRedirect = true;
+                                                                    patchFilename = folderpathInfo[1];
+                                                                }
 
-                                                                    httpRequest.MaximumAutomaticRedirections = 2;
+                                                                worker.ReportProgress(0, "Creating Download Folder " + globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + " for ContentID " + apatchcontentIDs.ContentID);
 
-                                                                    httpRequest.Timeout = 2000000;
+                                                                System.IO.Directory.CreateDirectory(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName);
 
-                                                                    HttpWebResponse httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+                                                                // Add to the contentID and contentPath arrays
 
-                                                                    Stream httpResponseStream = httpResponse.GetResponseStream();
+                                                                thecontentIDs.Add(Convert.ToInt32(contentID));
 
-                                                                    int bufferSize = 1024;
+                                                                thecontentPaths.Add(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName);
 
-                                                                    Int32 totalBytes = 0;
+                                                                // Download the file or reuse if already downloaded
 
-                                                                    byte[] buffer = new byte[bufferSize];
+                                                                int retryCount = 6;
 
-                                                                    int bytesRead = 0;
+                                                                for (int i = 0; i < Convert.ToInt16(globalObjects.GlobalClass.DownloadFailureRetry); i++) // Retry the download if the hash cannot be validated
+                                                                {
+                                                                    bool reuseFile = false;
 
-                                                                    worker.ReportProgress(0, "  Beginning file download");
+                                                                    worker.ReportProgress(0, "Downloading file " + patchFilename);
 
-                                                                    FileStream fileStream = File.Create(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + @"\" + patchFilename); // fileName is the full path                            
-
-                                                                    try
+                                                                    if (File.Exists(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + @"\" + patchFilename)) // Check if it exists, hash check it, use it if valid
                                                                     {
-                                                                        while ((bytesRead = httpResponseStream.Read(buffer, 0, bufferSize)) != 0)
-                                                                        {
-                                                                            try
-                                                                            {
-                                                                                fileStream.Write(buffer, 0, bytesRead);
-
-                                                                                totalBytes = totalBytes + bufferSize;
-                                                                            }
-                                                                            catch (Exception ee)
-                                                                            {
-                                                                                fileStream.Close();
-                                                                            }
-                                                                        }
-
-                                                                        worker.ReportProgress(0, "File downloaded");
-
-                                                                        fileStream.Close();
-
-                                                                        httpResponseStream.Close();
-
-                                                                        httpResponse.Close();
-
-                                                                        worker.ReportProgress(0, "Hash checking the Patch file");
+                                                                        worker.ReportProgress(0, "  File already exists, verifying hash");
 
                                                                         if (patchHash == null)
                                                                         {
-                                                                            worker.ReportProgress(0, "    WARNING: Hash not supplied by Microsoft, unable to verifying hash, proceeding to use downloaded file");
+                                                                            worker.ReportProgress(0, "    WARNING: Hash not supplied by Microsoft, unable to verify hash, proceeding to use downloaded file");
 
-                                                                            downloadfailureList.Remove(patchfolderName + @"\" + patchFilename); // Remove the patch from the download failure list, if it is present
-
-                                                                            break;
+                                                                            reuseFile = true;
                                                                         }
                                                                         else
                                                                         {
-                                                                            if (hashcheckFile(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + @"\" + patchFilename, patchHash)) // The Patches hash matches                                                            
+                                                                            if (hashcheckFile(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + @"\" + patchFilename, patchHash))
                                                                             {
-                                                                                worker.ReportProgress(0, " Hash verification successful for file " + patchFilename);
+                                                                                worker.ReportProgress(0, "  Hash verified, using already downloaded content");
 
-                                                                                downloadfailureList.Remove(patchfolderName + @"\" + patchFilename); // Remove the patch from the download failure list, if it is present
-
-                                                                                break;
+                                                                                reuseFile = true;
                                                                             }
                                                                             else
                                                                             {
-                                                                                worker.ReportProgress(0, " Hash verification failure for file " + patchFilename + ", retrying");
+                                                                                worker.ReportProgress(0, "  Hash failure, removing already downloaded content");
+
+                                                                                try // Remove the old file
+                                                                                {
+                                                                                    File.Delete(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + @"\" + patchFilename);
+                                                                                }
+                                                                                catch (Exception ee)
+                                                                                {
+
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                    if (reuseFile)
+                                                                    {
+                                                                        worker.ReportProgress(0, "File downloaded");
+
+                                                                        downloadfailureList.Remove(patchfolderName + @"\" + patchFilename); // Remove the patch from the download failure list, if it is present
+
+                                                                        break;
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        try
+                                                                        {
+                                                                            HttpWebRequest httpRequest = (HttpWebRequest)WebRequest.Create(patchURL);
+
+                                                                            HttpWebRequest httpfilesizeRequest = (HttpWebRequest)WebRequest.Create(patchURL);
+
+                                                                            httpRequest.Method = WebRequestMethods.Http.Get;
+
+                                                                            httpRequest.AllowAutoRedirect = true;
+
+                                                                            httpRequest.MaximumAutomaticRedirections = 2;
+
+                                                                            httpRequest.Timeout = 2000000;
+
+                                                                            HttpWebResponse httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+
+                                                                            Stream httpResponseStream = httpResponse.GetResponseStream();
+
+                                                                            int bufferSize = 1024;
+
+                                                                            Int32 totalBytes = 0;
+
+                                                                            byte[] buffer = new byte[bufferSize];
+
+                                                                            int bytesRead = 0;
+
+                                                                            worker.ReportProgress(0, "  Beginning file download");
+
+                                                                            FileStream fileStream = File.Create(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + @"\" + patchFilename); // fileName is the full path                            
+
+                                                                            try
+                                                                            {
+                                                                                while ((bytesRead = httpResponseStream.Read(buffer, 0, bufferSize)) != 0)
+                                                                                {
+                                                                                    try
+                                                                                    {
+                                                                                        fileStream.Write(buffer, 0, bytesRead);
+
+                                                                                        totalBytes = totalBytes + bufferSize;
+                                                                                    }
+                                                                                    catch (Exception ee)
+                                                                                    {
+                                                                                        fileStream.Close();
+                                                                                    }
+                                                                                }
+
+                                                                                worker.ReportProgress(0, "File downloaded");
+
+                                                                                fileStream.Close();
+
+                                                                                httpResponseStream.Close();
+
+                                                                                httpResponse.Close();
+
+                                                                                worker.ReportProgress(0, "Hash checking the Patch file");
+
+                                                                                if (patchHash == null)
+                                                                                {
+                                                                                    worker.ReportProgress(0, "    WARNING: Hash not supplied by Microsoft, unable to verifying hash, proceeding to use downloaded file");
+
+                                                                                    downloadfailureList.Remove(patchfolderName + @"\" + patchFilename); // Remove the patch from the download failure list, if it is present
+
+                                                                                    break;
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    if (hashcheckFile(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName + @"\" + patchfolderName + @"\" + patchFilename, patchHash)) // The Patches hash matches                                                            
+                                                                                    {
+                                                                                        worker.ReportProgress(0, " Hash verification successful for file " + patchFilename);
+
+                                                                                        downloadfailureList.Remove(patchfolderName + @"\" + patchFilename); // Remove the patch from the download failure list, if it is present
+
+                                                                                        break;
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        worker.ReportProgress(0, " Hash verification failure for file " + patchFilename + ", retrying");
+
+                                                                                        if (!downloadfailureList.Contains(patchfolderName + @"\" + patchFilename))
+                                                                                        {
+                                                                                            downloadfailureList.Add(patchfolderName + @"\" + patchFilename);
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            catch (Exception ee)
+                                                                            {
+                                                                                worker.ReportProgress(0, " Error when handling file download " + patchFilename + " - " + ee.Message);
+
+                                                                                fileStream.Close();
 
                                                                                 if (!downloadfailureList.Contains(patchfolderName + @"\" + patchFilename))
                                                                                 {
                                                                                     downloadfailureList.Add(patchfolderName + @"\" + patchFilename);
                                                                                 }
+
+                                                                                // Wait 1 minute then proceed
+
+                                                                                if (i < retryCount)
+                                                                                {
+                                                                                    worker.ReportProgress(0, "  Waiting one minute for things to settle down and then retrying " + patchFilename);
+
+                                                                                    System.Threading.Thread.Sleep(15000);
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                        catch (Exception ee)
+                                                                        {
+                                                                            worker.ReportProgress(0, " Error when handling file download " + patchFilename + " - " + ee.Message);
+
+                                                                            if (!downloadfailureList.Contains(patchfolderName + @"\" + patchFilename))
+                                                                            {
+                                                                                downloadfailureList.Add(patchfolderName + @"\" + patchFilename);
+                                                                            }
+
+                                                                            // Wait 1 minute then proceed
+
+                                                                            if (i < retryCount)
+                                                                            {
+                                                                                worker.ReportProgress(0, "  Waiting one minute for things to settle down and then retrying " + patchFilename);
+
+                                                                                System.Threading.Thread.Sleep(15000);
                                                                             }
                                                                         }
                                                                     }
-                                                                    catch (Exception ee)
-                                                                    {
-                                                                        worker.ReportProgress(0, " Error when handling file download " + patchFilename + " - " + ee.Message);
-
-                                                                        fileStream.Close();
-
-                                                                        if (!downloadfailureList.Contains(patchfolderName + @"\" + patchFilename))
-                                                                        {
-                                                                            downloadfailureList.Add(patchfolderName + @"\" + patchFilename);
-                                                                        }
-
-                                                                        // Wait 1 minute then proceed
-
-                                                                        if (i < retryCount)
-                                                                        {
-                                                                            worker.ReportProgress(0, "  Waiting one minute for things to settle down and then retrying " + patchFilename);
-
-                                                                            System.Threading.Thread.Sleep(15000);
-                                                                        }
-                                                                    }
                                                                 }
-                                                                catch (Exception ee)
-                                                                {
-                                                                    worker.ReportProgress(0, " Error when handling file download " + patchFilename + " - " + ee.Message);
-
-                                                                    if (!downloadfailureList.Contains(patchfolderName + @"\" + patchFilename))
-                                                                    {
-                                                                        downloadfailureList.Add(patchfolderName + @"\" + patchFilename);
-                                                                    }
-
-                                                                    // Wait 1 minute then proceed
-
-                                                                    if (i < retryCount)
-                                                                    {
-                                                                        worker.ReportProgress(0, "  Waiting one minute for things to settle down and then retrying " + patchFilename);
-
-                                                                        System.Threading.Thread.Sleep(15000);
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    catch (Exception ee)
-                                                    {
-                                                        worker.ReportProgress(0, "Fatal error handling file downloads - " + ee.Message);
-
-                                                        break;
-                                                    }
-                                                }
-
-                                                if (downloadfailureList.Count > 0) break; // Let's back out of here since we have a download failure
-                                            }
-
-                                            if (downloadfailureList.Count == 0) // Continue if nothing on the failure list
-                                            {
-                                                worker.ReportProgress(0, "Creating Software Update Package " + asugItem.sugName);
-
-                                                // Create the SUP
-
-                                                IResultObject newSUMDeploymentPackage = globalObjects.GlobalClass.ConnectionManager.CreateInstance("SMS_SoftwareUpdatesPackage");
-
-                                                newSUMDeploymentPackage["Name"].StringValue = asugItem.sugName;
-                                                newSUMDeploymentPackage["Description"].StringValue = "";
-                                                newSUMDeploymentPackage["PkgSourceFlag"].IntegerValue = 2;
-                                                newSUMDeploymentPackage["PkgSourcePath"].StringValue = globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName;
-
-                                                newSUMDeploymentPackage.Put();
-
-                                                worker.ReportProgress(0, "Software Update Package " + asugItem.sugName + " Created");
-
-                                                // Get the Package now that we've created it
-
-                                                newSUMDeploymentPackage.Get();
-
-                                                string apackageID = newSUMDeploymentPackage["PackageID"].StringValue;
-
-                                                IResultObject existingSUMDeploymentPackage = globalObjects.GlobalClass.ConnectionManager.GetInstance(@"SMS_SoftwareUpdatesPackage.PackageID='" + apackageID + "'");
-
-                                                // Populate SUP with SUG patches
-
-                                                worker.ReportProgress(0, "Adding Patches to Software Update Package " + asugItem.sugName);
-
-                                                string[] newArrayContentSourcePath = new string[] { globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName };
-
-                                                newArrayContentSourcePath = Enumerable.Repeat(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName, asugItem.TotalPatches).ToArray();
-
-                                                Dictionary<string, object> addUpdateContentParameters = new Dictionary<string, object>();
-
-                                                addUpdateContentParameters.Add("ContentIds", thecontentIDs.ToArray());
-                                                addUpdateContentParameters.Add("ContentSourcePath", thecontentPaths.ToArray());
-                                                addUpdateContentParameters.Add("bRefreshDPs", false);
-
-                                                bool patcheswhereAdded = false;
-
-                                                try
-                                                {
-                                                    existingSUMDeploymentPackage.ExecuteMethod("AddUpdateContent", addUpdateContentParameters);
-
-                                                    globalObjects.supdpItem asupdpItem = new globalObjects.supdpItem();
-
-                                                    asupdpItem.Name = asugItem.sugName;
-                                                    asupdpItem.PackageID = apackageID;
-
-                                                    asupdpitemCollection.Add(asupdpItem); // Put the SUP into its collection so we can process it later
-
-                                                    worker.ReportProgress(0, " Patches added");
-
-                                                    patcheswhereAdded = true;
-                                                }
-                                                catch (Exception ee)
-                                                {
-                                                    worker.ReportProgress(0, " Fatal error when adding Patches to Package - " + ee.Message);
-                                                }
-
-                                                // Handle DP Update                                                
-
-                                                if (patcheswhereAdded)
-                                                {
-                                                    // *** we need to add to DP Groups and DPs
-
-                                                    worker.ReportProgress(0, "Adding Software Update Package " + asugItem.sugName + " to Distribution Points");
-
-                                                    foreach (globalObjects.distributionpointItem adistributionpointItem in globalObjects.GlobalClass.distributionpointRules)
-                                                    {
-                                                        if (adistributionpointItem.Type == "DP")
-                                                        {
-                                                            IResultObject distributionPoint = globalObjects.GlobalClass.ConnectionManager.CreateInstance("SMS_DistributionPoint");
-
-                                                            distributionPoint["PackageID"].StringValue = apackageID;
-
-                                                            distributionPoint["ServerNALPath"].StringValue = adistributionpointItem.NALPath;
-
-                                                            distributionPoint["SiteCode"].StringValue = adistributionpointItem.Sitecode;
-
-                                                            try
-                                                            {
-                                                                distributionPoint.Put();
-
-                                                                worker.ReportProgress(0, " Added " + asugItem.sugName + " to Distribution Point " + adistributionpointItem.NALPath);
-
                                                             }
                                                             catch (Exception ee)
                                                             {
-                                                                worker.ReportProgress(0, " Failed to add " + asugItem.sugName + " to Distribution Point " + adistributionpointItem.NALPath);
+                                                                worker.ReportProgress(0, "Fatal error handling file downloads - " + ee.Message);
+
+                                                                break;
                                                             }
                                                         }
-                                                        else // DP Group
-                                                        {
+                                                    }
 
+                                                    if (downloadfailureList.Count > 0) break; // Let's back out of here since we have a download failure
+                                                }
+                                            }
+                                            else
+                                            {
+                                                worker.ReportProgress(0, "Skipping the download of files for " + asugItem.sugName);
+                                            }
+
+                                            // Create SUP now that content has been downloaded (if it has)
+
+                                            if (downloadfailureList.Count == 0) // Continue if nothing on the failure list
+                                            {
+                                                if (globalObjects.GlobalClass.AllowContent)
+                                                {
+                                                    worker.ReportProgress(0, "Creating Software Update Package " + asugItem.sugName);
+
+                                                    // Create the SUP
+
+                                                    IResultObject newSUMDeploymentPackage = globalObjects.GlobalClass.ConnectionManager.CreateInstance("SMS_SoftwareUpdatesPackage");
+
+                                                    newSUMDeploymentPackage["Name"].StringValue = asugItem.sugName;
+                                                    newSUMDeploymentPackage["Description"].StringValue = "";
+                                                    newSUMDeploymentPackage["PkgSourceFlag"].IntegerValue = 2;
+                                                    newSUMDeploymentPackage["PkgSourcePath"].StringValue = globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName;
+
+                                                    newSUMDeploymentPackage.Put();
+
+                                                    worker.ReportProgress(0, "Software Update Package " + asugItem.sugName + " Created");
+
+                                                    // Get the Package now that we've created it
+
+                                                    newSUMDeploymentPackage.Get();
+
+                                                    string apackageID = newSUMDeploymentPackage["PackageID"].StringValue;
+
+                                                    IResultObject existingSUMDeploymentPackage = globalObjects.GlobalClass.ConnectionManager.GetInstance(@"SMS_SoftwareUpdatesPackage.PackageID='" + apackageID + "'");
+
+                                                    // Populate SUP with SUG patches
+
+                                                    worker.ReportProgress(0, "Adding Patches to Software Update Package " + asugItem.sugName);
+
+                                                    string[] newArrayContentSourcePath = new string[] { globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName };
+
+                                                    newArrayContentSourcePath = Enumerable.Repeat(globalObjects.GlobalClass.uncPath + @"\" + asugItem.sugName, asugItem.TotalPatches).ToArray();
+
+                                                    Dictionary<string, object> addUpdateContentParameters = new Dictionary<string, object>();
+
+                                                    addUpdateContentParameters.Add("ContentIds", thecontentIDs.ToArray());
+                                                    addUpdateContentParameters.Add("ContentSourcePath", thecontentPaths.ToArray());
+                                                    addUpdateContentParameters.Add("bRefreshDPs", false);
+
+                                                    bool patcheswhereAdded = false;
+
+                                                    try
+                                                    {
+                                                        existingSUMDeploymentPackage.ExecuteMethod("AddUpdateContent", addUpdateContentParameters);
+
+                                                        globalObjects.supdpItem asupdpItem = new globalObjects.supdpItem();
+
+                                                        asupdpItem.Name = asugItem.sugName;
+                                                        asupdpItem.PackageID = apackageID;
+
+                                                        asupdpitemCollection.Add(asupdpItem); // Put the SUP into its collection so we can process it later
+
+                                                        worker.ReportProgress(0, " Patches added");
+
+                                                        patcheswhereAdded = true;
+                                                    }
+                                                    catch (Exception ee)
+                                                    {
+                                                        worker.ReportProgress(0, " Fatal error when adding Patches to Package - " + ee.Message);
+                                                    }
+
+                                                    // Handle DP Update                                                
+
+                                                    if (patcheswhereAdded)
+                                                    {
+                                                        // *** we need to add to DP Groups and DPs
+
+                                                        worker.ReportProgress(0, "Adding Software Update Package " + asugItem.sugName + " to Distribution Points");
+
+                                                        foreach (globalObjects.distributionpointItem adistributionpointItem in globalObjects.GlobalClass.distributionpointRules)
+                                                        {
+                                                            if (adistributionpointItem.Type == "DP")
+                                                            {
+                                                                IResultObject distributionPoint = globalObjects.GlobalClass.ConnectionManager.CreateInstance("SMS_DistributionPoint");
+
+                                                                distributionPoint["PackageID"].StringValue = apackageID;
+
+                                                                distributionPoint["ServerNALPath"].StringValue = adistributionpointItem.NALPath;
+
+                                                                distributionPoint["SiteCode"].StringValue = adistributionpointItem.Sitecode;
+
+                                                                try
+                                                                {
+                                                                    distributionPoint.Put();
+
+                                                                    worker.ReportProgress(0, " Added " + asugItem.sugName + " to Distribution Point " + adistributionpointItem.NALPath);
+
+                                                                }
+                                                                catch (Exception ee)
+                                                                {
+                                                                    worker.ReportProgress(0, " Failed to add " + asugItem.sugName + " to Distribution Point " + adistributionpointItem.NALPath);
+                                                                }
+                                                            }
+                                                            else // DP Group
+                                                            {
+
+                                                            }
                                                         }
                                                     }
-                                                }
 
-                                                worker.ReportProgress(0, " Initiating Distribution Point Update for " + asugItem.sugName);
+                                                    worker.ReportProgress(0, " Initiating Distribution Point Update for " + asugItem.sugName);
 
-                                                try
-                                                {                                                    
-                                                    existingSUMDeploymentPackage.ExecuteMethod("RefreshPkgSource", null);
+                                                    try
+                                                    {
+                                                        existingSUMDeploymentPackage.ExecuteMethod("RefreshPkgSource", null);
 
-                                                    existingSUMDeploymentPackage.Dispose();
+                                                        existingSUMDeploymentPackage.Dispose();
 
-                                                    worker.ReportProgress(0, "   Successfully initiated Distribution Point Update");
-                                                }
-                                                catch (Exception ee)
-                                                {
-                                                    worker.ReportProgress(0, " Failed to initiate an update for " + asugItem.sugName + " to Distribution Point: " + ee.Message);
+                                                        worker.ReportProgress(0, "   Successfully initiated Distribution Point Update");
+                                                    }
+                                                    catch (Exception ee)
+                                                    {
+                                                        worker.ReportProgress(0, " Failed to initiate an update for " + asugItem.sugName + " to Distribution Point: " + ee.Message);
+                                                    }
                                                 }
 
                                                 // Create Deployments for this SUG
@@ -6189,7 +6229,7 @@ namespace PatchMaster
                                                     foreach (globalObjects.deploymentItem adeploymentItem in globalObjects.GlobalClass.deploymentRules) // We'll loop through the deployment list and see if our SUG's device type matches with a rule
                                                     {
                                                         try
-                                                        {                                                            
+                                                        {
                                                             IResultObject existingCollection = globalObjects.GlobalClass.ConnectionManager.QueryProcessor.ExecuteQuery("Select * from SMS_collection where Name = '" + adeploymentItem.TargetCollection + "'");
 
                                                             string acollectionID = "";
@@ -6206,8 +6246,6 @@ namespace PatchMaster
                                                                 worker.ReportProgress(0, "Looking for deployments for device group " + adeviceType);
 
                                                                 string[] tmpdeviceType = asugItem.DeviceType.Split(',');
-
-                                                                //if (asugItem.DeviceType.Contains(adeviceType)) // Create a deployment!
 
                                                                 if (tmpdeviceType.Contains(adeviceType)) // Create a deployment!
                                                                 {
@@ -6418,7 +6456,6 @@ namespace PatchMaster
                                                                         foreach (globalObjects.deploymentProperty adeploymentProperty in globalObjects.GlobalClass.globaldeploymentpropertiesCollection)
                                                                         {
                                                                             if (adeviceType == adeploymentProperty.DeviceGroup)
-                                                                            //if (asugItem.DeviceType == adeploymentProperty.DeviceGroup)
                                                                             {
                                                                                 try
                                                                                 {
@@ -6742,26 +6779,12 @@ namespace PatchMaster
                 worker.ReportProgress(0, "*******************************************************");
 
                 globalObjects.GlobalClass.patchcacheStopwatch.Stop(); // Force a rescan for ConfigMgr patch data by stopping the stopwatch
-
-                //if (!globalObjects.GlobalClass.SilentRunning)
-                //{
-                //    globalObjects.GlobalClass.forceScan = true;
-
-                //    getconfigmgrPatches(worker); // Refresh the stale WSUS Patch list since patches have been deployed
-                //}
             }
             else
             {
                 worker.ReportProgress(0, "No patches found");
             }
-        }
-
-        private bool approvedlanguagePresent(string fileName)
-        {
-            // Find the list of approved languages for the rule, I need to map languageID to language country code tk-tk de-de en-us en-uk etc, then see if any of the approved ones are in the filename, none present then return false;
-
-            return true;
-        }
+        }        
 
         private void bw_build_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
@@ -6860,13 +6883,51 @@ namespace PatchMaster
         {
             if (!globalObjects.GlobalClass.SilentRunning)
             {
+                // Recolor the controls
+                
+                cb_rollupclientOS.BackColor = Color.DarkGray;
+                cb_rollupOffice.BackColor = Color.DarkGray;
+                cb_rollupserverOS.BackColor = Color.DarkGray;                
+                cb_createreportingSUGS.BackColor = Color.DarkGray;
+                cb_deployment_allowMetered.BackColor = Color.DarkGray;
+                cb_deployment_commitFilter.BackColor = Color.DarkGray;
+                cb_deployment_deadlinerestart.BackColor = Color.DarkGray;
+                cb_deployment_defaultFallback.BackColor = Color.DarkGray;
+                cb_deployment_delayEnforcement.BackColor = Color.DarkGray;
+                cb_deployment_disablemomAlerts.BackColor = Color.DarkGray;
+                cb_deployment_downloadNeighbour.BackColor = Color.DarkGray;
+                cb_deployment_enableWOL.BackColor = Color.DarkGray;
+                cb_deployment_Evaluation.BackColor = Color.DarkGray;
+                cb_deployment_limitstatemsgverbosity.BackColor = Color.DarkGray;
+                cb_deployment_logtowinEvent.BackColor = Color.DarkGray;
+                cb_deployment_notifyUser.BackColor = Color.DarkGray;
+                cb_deployment_overrideserviceWindows.BackColor = Color.DarkGray;
+                cb_deployment_raisemomalertsonFailure.BackColor = Color.DarkGray;
+                cb_deployment_RandomizationEnabled.BackColor = Color.DarkGray;
+                cb_deployment_senddetailednonCompliance.BackColor = Color.DarkGray;
+                cb_deployment_statemessagePriority.BackColor = Color.DarkGray;
+                cb_deployment_statemessageVerbosity.BackColor = Color.DarkGray;
+                cb_deployment_supressServers.BackColor = Color.DarkGray;
+                cb_deployment_supressWorkstations.BackColor = Color.DarkGray;
+                cb_deployment_useBranchcache.BackColor = Color.DarkGray;
+                cb_deployment_usemsUpdates.BackColor = Color.DarkGray;
+                cb_deployment_useruiExperience.BackColor = Color.DarkGray;
+                cb_deployment_useutcTimes.BackColor = Color.DarkGray;
+                cb_timeMachine.BackColor = Color.DarkGray;
+                cb_unlocknamingBar.BackColor = Color.DarkGray;
+                cb_allowContent.BackColor = Color.DarkGray;
+
+                // Disable the controls
+
+                nud_downloadRetry.Enabled = false;
+                cb_allowContent.Enabled = false;
+                cb_deployment_statemessagePriority.Enabled = false;
+                cb_deployment_statemessageVerbosity.Enabled = false;
                 cb_forceScan.Enabled = false;
                 cb_runsumCleanup.Enabled = false;
-
                 cb_rollupclientOS.Enabled = false;
                 cb_rollupOffice.Enabled = false;
                 cb_rollupserverOS.Enabled = false;
-
                 cb_forceScan.Enabled = false;
                 tb_addTextbox.Enabled = false;
                 b_addDay.Enabled = false;
@@ -6907,20 +6968,16 @@ namespace PatchMaster
                 cb_timemachine_Day.Enabled = false;
                 cb_timemachine_Month.Enabled = false;
                 cb_timemachine_Year.Enabled = false;
-                //dgv_availablePatches.Enabled = false;
                 dgv_Deployments.Enabled = false;
                 dgv_ignorePatches.Enabled = false;
                 dgv_SecurityScopes.Enabled = false;
                 dgv_Transcript.Enabled = false;
                 l_totalRows.Enabled = false;
-                //pb_waitImage.Visible = false;
                 tb_deviceType.Enabled = false;
                 tb_ooc_Tag.Enabled = false;
                 tb_packageFolder.Enabled = false;
                 tb_packagesourcePath.Enabled = false;
                 b_addProduct.Enabled = false;
-
-                b_createPath.Enabled = false;
                 cb_deploymentdeviceGroup.Enabled = false;
                 cb_deployment_disablemomAlerts.Enabled = false;
                 cb_deployment_limitstatemsgverbosity.Enabled = false;
@@ -6945,18 +7002,56 @@ namespace PatchMaster
         {
             if (!globalObjects.GlobalClass.SilentRunning)
             {
+                cb_createreportingSUGS.BackColor = Color.Black;
+                cb_rollupOffice.BackColor = Color.Black;
+                cb_rollupclientOS.BackColor = Color.Black;
+                cb_rollupserverOS.BackColor = Color.Black;
+
+                // Deployment settings
+
+                cb_deployment_allowMetered.BackColor = Color.Black;
+                cb_deployment_commitFilter.BackColor = Color.Black;
+                cb_deployment_deadlinerestart.BackColor = Color.Black;
+                cb_deployment_defaultFallback.BackColor = Color.Black;
+                cb_deployment_delayEnforcement.BackColor = Color.Black;
+                cb_deployment_disablemomAlerts.BackColor = Color.Black;
+                cb_deployment_downloadNeighbour.BackColor = Color.Black;
+                cb_deployment_enableWOL.BackColor = Color.Black;
+                cb_deployment_Evaluation.BackColor = Color.Black;
+                cb_deployment_limitstatemsgverbosity.BackColor = Color.Black;
+                cb_deployment_logtowinEvent.BackColor = Color.Black;
+                cb_deployment_notifyUser.BackColor = Color.Black;
+                cb_deployment_overrideserviceWindows.BackColor = Color.Black;
+                cb_deployment_raisemomalertsonFailure.BackColor = Color.Black;
+                cb_deployment_RandomizationEnabled.BackColor = Color.Black;
+                cb_deployment_senddetailednonCompliance.BackColor = Color.Black;
+                cb_deployment_statemessagePriority.BackColor = Color.Black;
+                cb_deployment_statemessageVerbosity.BackColor = Color.Black;
+                cb_deployment_supressServers.BackColor = Color.Black;
+                cb_deployment_supressWorkstations.BackColor = Color.Black;
+                cb_deployment_useBranchcache.BackColor = Color.Black;
+                cb_deployment_usemsUpdates.BackColor = Color.Black;
+                cb_deployment_useruiExperience.BackColor = Color.Black;
+                cb_deployment_useutcTimes.BackColor = Color.Black;
+                cb_timeMachine.BackColor = Color.Black;
+                cb_unlocknamingBar.BackColor = Color.Black;
+                cb_allowContent.BackColor = Color.Black;
+
+                // Enable controls
+
+                nud_downloadRetry.Enabled = true;
+                cb_allowContent.Enabled = true;
+                cb_deployment_statemessagePriority.Enabled = true;
+                cb_deployment_statemessageVerbosity.Enabled = true;
                 cb_forceScan.Enabled = true;
                 cb_runsumCleanup.Enabled = true;
-
                 cb_rollupclientOS.Enabled = true;
                 cb_rollupOffice.Enabled = true;
                 cb_rollupserverOS.Enabled = true;
-
                 cb_forceScan.Enabled = true;
                 b_addDP.Enabled = true;
                 cb_unlocknamingBar.Enabled = true;
                 b_addReporting.Enabled = true;
-
                 if (cb_unlocknamingBar.Checked)
                 {
                     tb_addTextbox.Enabled = true;
@@ -6980,7 +7075,6 @@ namespace PatchMaster
                 b_removesecurityScope.Enabled = true;
                 b_removeselectedRule.Enabled = true;
                 cb_createreportingSUGS.Enabled = true;
-                //cb_deployment_allowMetered.Enabled = true;
                 cb_deployment_commitFilter.Enabled = true;
                 cb_deployment_deadlinerestart.Enabled = true;
                 cb_deployment_defaultFallback.Enabled = true;
@@ -6991,26 +7085,21 @@ namespace PatchMaster
                 cb_deployment_supressServers.Enabled = true;
                 cb_deployment_supressWorkstations.Enabled = true;
                 cb_deployment_useBranchcache.Enabled = true;
-                //cb_deployment_usemsUpdates.Enabled = true;
                 cb_dpList.Enabled = true;
                 cb_timeMachine.Enabled = true;
                 cb_timemachine_Day.Enabled = true;
                 cb_timemachine_Month.Enabled = true;
                 cb_timemachine_Year.Enabled = true;
-                //dgv_availablePatches.Enabled = true;
                 dgv_Deployments.Enabled = true;
                 dgv_ignorePatches.Enabled = true;
                 dgv_SecurityScopes.Enabled = true;
                 dgv_Transcript.Enabled = true;
                 l_totalRows.Enabled = true;
-                //pb_waitImage.Visible = false;
                 tb_deviceType.Enabled = true;
                 tb_ooc_Tag.Enabled = true;
                 tb_packageFolder.Enabled = true;
                 tb_packagesourcePath.Enabled = true;
                 b_addProduct.Enabled = true;
-
-                b_createPath.Enabled = true;
                 cb_deploymentdeviceGroup.Enabled = true;
                 cb_deployment_disablemomAlerts.Enabled = true;
                 cb_deployment_limitstatemsgverbosity.Enabled = true;
@@ -7058,8 +7147,6 @@ namespace PatchMaster
 
                 foreach (globalObjects.deploymentItem adeploymentItem in globalObjects.GlobalClass.deploymentRules)
                 {
-                    //if (adeploymentItem.DeviceType == aruleItem.DeviceType)
-
                     foreach (string devicegroupItem in devicegroupList)
                     {
                         if (devicegroupList.Contains(adeploymentItem.DeviceType))
@@ -7242,6 +7329,8 @@ namespace PatchMaster
                     if (asearchRow.Cells[0].Value.ToString().Contains(cb_dpList.Text))
                     {
                         foundexistingRow = true;
+
+                        break;
                     }
                 }
 
@@ -7698,7 +7787,6 @@ namespace PatchMaster
             b_addDay.Enabled = false;
             b_addMonth.Enabled = false;
             b_addYear.Enabled = false;
-            // b_addProduct.Enabled = false;
             b_addClassification.Enabled = false;
             b_addArchitecture.Enabled = false;
             b_addOOC.Enabled = false;
@@ -7956,11 +8044,11 @@ namespace PatchMaster
             }
         }
 
-        private void cb_deployment_dowloadNeighbour_CheckedChanged(object sender, EventArgs e)
+        private int handledplocalityBitmask()
         {
             if (!globalObjects.GlobalClass.disableProcessing)
             {
-                int tosendInt = 3;
+                int tosendInt = 80;
 
                 if (cb_deployment_downloadNeighbour.Checked && cb_deployment_defaultFallback.Checked) tosendInt = 80;
 
@@ -7970,7 +8058,21 @@ namespace PatchMaster
 
                 if (!cb_deployment_downloadNeighbour.Checked && !cb_deployment_defaultFallback.Checked) tosendInt = 131088;
 
-                handledevicegroupdeploymentpropertyChange(cb_deploymentdeviceGroup.Text, "DPLocality", tosendInt);
+                if (cb_deployment_usemsUpdates.Checked) tosendInt = tosendInt + 262144 ;
+
+                if (cb_deployment_allowMetered.Checked) tosendInt = tosendInt + 524288 ;
+
+                return tosendInt;
+            }
+
+            return 0;
+        }
+
+        private void cb_deployment_dowloadNeighbour_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!globalObjects.GlobalClass.disableProcessing)
+            {
+                handledevicegroupdeploymentpropertyChange(cb_deploymentdeviceGroup.Text, "DPLocality", handledplocalityBitmask());
             }
         }
 
@@ -7978,17 +8080,7 @@ namespace PatchMaster
         {
             if (!globalObjects.GlobalClass.disableProcessing)
             {
-                int tosendInt = 3;
-
-                if (cb_deployment_downloadNeighbour.Checked && cb_deployment_defaultFallback.Checked) tosendInt = 80;
-
-                if (cb_deployment_downloadNeighbour.Checked && !cb_deployment_defaultFallback.Checked) tosendInt = 131152;
-
-                if (!cb_deployment_downloadNeighbour.Checked && cb_deployment_defaultFallback.Checked) tosendInt = 16;
-
-                if (!cb_deployment_downloadNeighbour.Checked && !cb_deployment_defaultFallback.Checked) tosendInt = 131088;
-
-                handledevicegroupdeploymentpropertyChange(cb_deploymentdeviceGroup.Text, "DPLocality", tosendInt);
+                handledevicegroupdeploymentpropertyChange(cb_deploymentdeviceGroup.Text, "DPLocality", handledplocalityBitmask());
             }
         }
 
@@ -7996,16 +8088,7 @@ namespace PatchMaster
         {
             if (!globalObjects.GlobalClass.disableProcessing)
             {
-                bool changeState = false;
-
-                if (cb_deployment_usemsUpdates.Checked)
-                {
-                    changeState = true;
-                }
-                else
-                {
-                    changeState = false;
-                }
+                handledevicegroupdeploymentpropertyChange(cb_deploymentdeviceGroup.Text, "DPLocality", handledplocalityBitmask());
             }
         }
 
@@ -8013,19 +8096,7 @@ namespace PatchMaster
         {
             if (!globalObjects.GlobalClass.disableProcessing)
             {
-                bool changeState = false;
-
-                if (cb_deployment_allowMetered.Checked)
-                {
-                    changeState = true;
-                }
-                else
-                {
-                    changeState = false;
-                }
-
-                setRegistry("PatchDeploymentAllowMetered", changeState);
-                globalObjects.GlobalClass.deployment_allowMetered = changeState;
+                handledevicegroupdeploymentpropertyChange(cb_deploymentdeviceGroup.Text, "DPLocality", handledplocalityBitmask());
             }
         }
 
@@ -8379,6 +8450,16 @@ namespace PatchMaster
             }
         }
 
+        [Flags]
+        public enum DPLocalityBitMask
+        {
+            DP_DOWNLOAD_FROM_LOCAL = 16,
+            DP_DOWNLOAD_FROM_REMOTE = 64,
+            DP_NO_FALLBACK_UNPROTECTED = 131072,
+            DP_ALLOW_WUMU = 262144,
+            DP_ALLOW_METERED_NETWORK = 524288
+        }
+
         private void populateCheckboxes()
         {
             foreach (globalObjects.deploymentProperty adeploymentProperty in globalObjects.GlobalClass.globaldeploymentpropertiesCollection)
@@ -8417,28 +8498,60 @@ namespace PatchMaster
 
                     // Handle DPLocality Bitmask Combinations (expect Metering and WUMU)
 
-                    if (adeploymentProperty.DPLocality == 80)
+                    var DPLocalityMask = (DPLocalityBitMask)adeploymentProperty.DPLocality;
+
+                    var decodedDPLocality = new List<DPLocalityBitMask>();
+
+                    foreach (DPLocalityBitMask DPLocalityBit in Enum.GetValues(typeof(DPLocalityBitMask)))
                     {
-                        cb_deployment_downloadNeighbour.Checked = true;
-                        cb_deployment_defaultFallback.Checked = true;
+
+                        if (DPLocalityMask.HasFlag(DPLocalityBit))
+                        {
+                            decodedDPLocality.Add(DPLocalityBit);
+                        }
                     }
 
-                    if (adeploymentProperty.DPLocality == 131152)
+                    // Neighbour, Fallback
+
+                    if (decodedDPLocality.Contains(DPLocalityBitMask.DP_DOWNLOAD_FROM_LOCAL) && decodedDPLocality.Contains(DPLocalityBitMask.DP_DOWNLOAD_FROM_REMOTE))
                     {
-                        cb_deployment_downloadNeighbour.Checked = true;
-                        cb_deployment_defaultFallback.Checked = false;
+                        cb_deployment_downloadNeighbour.Checked = true;                        
                     }
 
-                    if (adeploymentProperty.DPLocality == 16)
+                    if (decodedDPLocality.Contains(DPLocalityBitMask.DP_DOWNLOAD_FROM_LOCAL) && !decodedDPLocality.Contains(DPLocalityBitMask.DP_DOWNLOAD_FROM_REMOTE))
                     {
                         cb_deployment_downloadNeighbour.Checked = false;
-                        cb_deployment_defaultFallback.Checked = true;
                     }
 
-                    if (adeploymentProperty.DPLocality == 131088)
+                    if (decodedDPLocality.Contains(DPLocalityBitMask.DP_NO_FALLBACK_UNPROTECTED))
                     {
-                        cb_deployment_downloadNeighbour.Checked = false;
                         cb_deployment_defaultFallback.Checked = false;
+                    }
+                    else
+                    {
+                        cb_deployment_defaultFallback.Checked = true;
+                    }
+                                        
+                    // Metered network
+
+                    if (decodedDPLocality.Contains(DPLocalityBitMask.DP_ALLOW_METERED_NETWORK))
+                    {
+                        cb_deployment_allowMetered.Checked = true;
+                    }
+                    else
+                    {
+                        cb_deployment_allowMetered.Checked = false;
+                    }
+
+                    // Use WUMU
+
+                    if (decodedDPLocality.Contains(DPLocalityBitMask.DP_ALLOW_WUMU))
+                    {
+                        cb_deployment_usemsUpdates.Checked = true;
+                    }
+                    else
+                    {
+                        cb_deployment_usemsUpdates.Checked = false;
                     }
 
                     cb_deployment_limitstatemsgverbosity.Checked = adeploymentProperty.LimitStateMessageVerbosity;
@@ -8912,29 +9025,6 @@ namespace PatchMaster
 
         private void dgv_Transcript_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            //for (int i = 0; i <= dgv_Transcript.Columns.Count - 1; i++)
-            //{
-            //    //store autosized widths
-            //    int colw = dgv_Transcript.Columns[i].Width;
-            //    //remove autosizing
-            //    dgv_Transcript.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-            //    //set width to calculated by autosize
-            //    dgv_Transcript.Columns[i].Width = colw;
-            //}
-
-
-            //for (int i = 0; i < dgv_Transcript.Columns.Count - 1; i++)
-            //{
-            //    dgv_Transcript.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            //}
-            //dgv_Transcript.Columns[dgv_Transcript.Columns.Count - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            //for (int i = 0; i < dgv_Transcript.Columns.Count; i++)
-            //{
-            //    int colw = dgv_Transcript.Columns[i].Width;
-            //    dgv_Transcript.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-            //    dgv_Transcript.Columns[i].Width = colw;
-            //}
         }
 
         private void cb_rollupclientOS_CheckedChanged(object sender, EventArgs e)
@@ -9039,6 +9129,88 @@ namespace PatchMaster
             dgv_distributionPoints.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.Beige;
             dgv_distributionPoints.Rows[e.RowIndex].DefaultCellStyle.ForeColor = Color.Black;
         }
-    }
 
+        private void Cb_allowContent_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!globalObjects.GlobalClass.loadthreadRunning)
+                {
+                    setRegistry("PatchAllowContent", cb_allowContent.Checked.ToString());
+
+                    globalObjects.GlobalClass.AllowContent = Convert.ToBoolean(cb_allowContent.Checked.ToString());
+                }
+            }
+            catch (Exception ee)
+            {
+                sharedlogMessage("Could not set the No Download of content value in the registry - " + ee.Message, false);
+
+                globalObjects.GlobalClass.DownloadFailureRetry = "6";
+            }
+        }
+
+        private void B_addnewProfile_Click(object sender, EventArgs e)
+        {
+            if (tb_newprofileName.Text != "")
+            {
+                lb_profileList.Items.Add(tb_newprofileName.Text);
+
+                // Set which profile PatchMaster will use on the next startup
+
+                setregistryNormal("PatchProfile", tb_newprofileName.Text);
+
+                // Create the new profile key so that it is detected at the next startup
+
+                try
+                {
+                    Microsoft.Win32.RegistryKey key;
+
+                    key = Microsoft.Win32.Registry.LocalMachine.CreateSubKey(@"Software\SMSMarshall\PatchMaster\Profiles\" + tb_newprofileName.Text);
+
+                    lb_profileList.SetSelected(lb_profileList.FindString(tb_newprofileName.Text), true);
+                }
+                catch (Exception ee)                
+                {
+
+                }
+
+            }
+        }
+
+        private void B_removeselectedProfile_Click(object sender, EventArgs e)
+        {
+            // Remove from the registry
+
+            DialogResult dialogResult = MessageBox.Show("Are you sure you wish to remove profile " + lb_profileList.SelectedItem + "?", "PatchMaster - Remove a Profile", MessageBoxButtons.YesNo);
+
+            if (dialogResult == DialogResult.Yes)
+            {
+                try
+                {
+                    RegistryKey registrykeyHKLM = Registry.LocalMachine;                    
+
+                    registrykeyHKLM.DeleteSubKey(@"Software\SMSMarshall\PatchMaster\Profiles\" + lb_profileList.SelectedItem);                                                  
+
+                    registrykeyHKLM.Close();
+
+                    // Remove from the lb_profileList control
+
+                    lb_profileList.Items.Remove(lb_profileList.SelectedItem);
+
+                    lb_profileList.SetSelected(lb_profileList.FindString("Default"), true);
+                }
+                catch (Exception ee)
+                {
+                    sharedlogMessage("Could not delete profile " + lb_profileList.SelectedItem + " from the registry - " + ee.Message, false);
+                }
+            }
+        }
+
+        private void Lb_profileList_SelectedValueChanged(object sender, EventArgs e)
+        {
+            setregistryNormal("PatchProfile", lb_profileList.SelectedItem);
+
+            sharedlogMessage("Restart PatchMaster to apply profile " + lb_profileList.SelectedItem, false);
+        }
+    }
 }
