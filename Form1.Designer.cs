@@ -30,7 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.label2 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.tb_packagesourcePath = new System.Windows.Forms.TextBox();
             this.tb_packageFolder = new System.Windows.Forms.TextBox();
@@ -74,6 +73,9 @@
             this.c_scoping_Scope = new System.Windows.Forms.DataGridViewComboBoxColumn();
             this.tc_Main = new System.Windows.Forms.TabControl();
             this.tb_Config = new System.Windows.Forms.TabPage();
+            this.groupBox11 = new System.Windows.Forms.GroupBox();
+            this.b_importREG = new System.Windows.Forms.Button();
+            this.b_exportREG = new System.Windows.Forms.Button();
             this.groupBox10 = new System.Windows.Forms.GroupBox();
             this.tb_newprofileName = new System.Windows.Forms.TextBox();
             this.lb_profileList = new System.Windows.Forms.ListBox();
@@ -107,7 +109,6 @@
             this.cb_createreportingSUGS = new System.Windows.Forms.CheckBox();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.cb_deployment_RandomizationEnabled = new System.Windows.Forms.CheckBox();
-            this.b_Debug = new System.Windows.Forms.Button();
             this.cb_deployment_overrideserviceWindows = new System.Windows.Forms.CheckBox();
             this.label7 = new System.Windows.Forms.Label();
             this.cb_deployment_statemessagePriority = new System.Windows.Forms.ComboBox();
@@ -166,6 +167,16 @@
             this.b_removeselectedRule = new System.Windows.Forms.Button();
             this.tb_Deployments = new System.Windows.Forms.TabPage();
             this.b_removeDeployment = new System.Windows.Forms.Button();
+            this.tb_PhasedDeployments = new System.Windows.Forms.TabPage();
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.dataGridViewComboBoxColumn1 = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.dataGridViewComboBoxColumn2 = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewComboBoxColumn3 = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.dataGridViewComboBoxColumn4 = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataGridViewComboBoxColumn5 = new System.Windows.Forms.DataGridViewComboBoxColumn();
+            this.dataGridViewTextBoxColumn3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tb_SecurityScopes = new System.Windows.Forms.TabPage();
             this.b_removesecurityScope = new System.Windows.Forms.Button();
             this.tb_AvailablePatches = new System.Windows.Forms.TabPage();
@@ -238,6 +249,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgv_SecurityScopes)).BeginInit();
             this.tc_Main.SuspendLayout();
             this.tb_Config.SuspendLayout();
+            this.groupBox11.SuspendLayout();
             this.groupBox10.SuspendLayout();
             this.groupBox9.SuspendLayout();
             this.groupBox8.SuspendLayout();
@@ -254,6 +266,8 @@
             this.groupBox1.SuspendLayout();
             this.tb_Rules.SuspendLayout();
             this.tb_Deployments.SuspendLayout();
+            this.tb_PhasedDeployments.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tb_SecurityScopes.SuspendLayout();
             this.tb_AvailablePatches.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sc_View)).BeginInit();
@@ -287,16 +301,6 @@
             this.cmt_removeignoredPatch.SuspendLayout();
             this.SuspendLayout();
             // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.label2.Location = new System.Drawing.Point(19, 16);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(131, 13);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Package Source Location";
-            // 
             // label4
             // 
             this.label4.AutoSize = true;
@@ -311,7 +315,7 @@
             // 
             this.tb_packagesourcePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tb_packagesourcePath.Location = new System.Drawing.Point(22, 32);
+            this.tb_packagesourcePath.Location = new System.Drawing.Point(22, 26);
             this.tb_packagesourcePath.Name = "tb_packagesourcePath";
             this.tb_packagesourcePath.Size = new System.Drawing.Size(385, 20);
             this.tb_packagesourcePath.TabIndex = 6;
@@ -322,7 +326,7 @@
             // 
             this.tb_packageFolder.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tb_packageFolder.Location = new System.Drawing.Point(416, 32);
+            this.tb_packageFolder.Location = new System.Drawing.Point(416, 26);
             this.tb_packageFolder.Name = "tb_packageFolder";
             this.tb_packageFolder.Size = new System.Drawing.Size(127, 20);
             this.tb_packageFolder.TabIndex = 7;
@@ -785,6 +789,7 @@
             this.tc_Main.Controls.Add(this.tb_Config);
             this.tc_Main.Controls.Add(this.tb_Rules);
             this.tc_Main.Controls.Add(this.tb_Deployments);
+            this.tc_Main.Controls.Add(this.tb_PhasedDeployments);
             this.tc_Main.Controls.Add(this.tb_SecurityScopes);
             this.tc_Main.Controls.Add(this.tb_AvailablePatches);
             this.tc_Main.Controls.Add(this.tb_IgnorePatches);
@@ -801,6 +806,7 @@
             // tb_Config
             // 
             this.tb_Config.BackColor = System.Drawing.Color.Black;
+            this.tb_Config.Controls.Add(this.groupBox11);
             this.tb_Config.Controls.Add(this.groupBox10);
             this.tb_Config.Controls.Add(this.groupBox9);
             this.tb_Config.Controls.Add(this.groupBox8);
@@ -818,6 +824,40 @@
             this.tb_Config.TabIndex = 5;
             this.tb_Config.Text = "Configure";
             this.tb_Config.Click += new System.EventHandler(this.tb_Config_Click);
+            // 
+            // groupBox11
+            // 
+            this.groupBox11.Controls.Add(this.b_importREG);
+            this.groupBox11.Controls.Add(this.b_exportREG);
+            this.groupBox11.ForeColor = System.Drawing.SystemColors.Control;
+            this.groupBox11.Location = new System.Drawing.Point(661, 480);
+            this.groupBox11.Name = "groupBox11";
+            this.groupBox11.Size = new System.Drawing.Size(402, 80);
+            this.groupBox11.TabIndex = 69;
+            this.groupBox11.TabStop = false;
+            this.groupBox11.Text = "Configuration Management";
+            // 
+            // b_importREG
+            // 
+            this.b_importREG.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.b_importREG.Location = new System.Drawing.Point(237, 30);
+            this.b_importREG.Name = "b_importREG";
+            this.b_importREG.Size = new System.Drawing.Size(140, 23);
+            this.b_importREG.TabIndex = 1;
+            this.b_importREG.Text = "Import Configuration";
+            this.b_importREG.UseVisualStyleBackColor = true;
+            this.b_importREG.Click += new System.EventHandler(this.B_importREG_Click);
+            // 
+            // b_exportREG
+            // 
+            this.b_exportREG.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.b_exportREG.Location = new System.Drawing.Point(21, 30);
+            this.b_exportREG.Name = "b_exportREG";
+            this.b_exportREG.Size = new System.Drawing.Size(132, 23);
+            this.b_exportREG.TabIndex = 0;
+            this.b_exportREG.Text = "Export Configuration";
+            this.b_exportREG.UseVisualStyleBackColor = true;
+            this.b_exportREG.Click += new System.EventHandler(this.B_exportREG_Click);
             // 
             // groupBox10
             // 
@@ -1212,7 +1252,6 @@
             // groupBox6
             // 
             this.groupBox6.Controls.Add(this.cb_deployment_RandomizationEnabled);
-            this.groupBox6.Controls.Add(this.b_Debug);
             this.groupBox6.Controls.Add(this.cb_deployment_overrideserviceWindows);
             this.groupBox6.Controls.Add(this.label7);
             this.groupBox6.Controls.Add(this.cb_deployment_statemessagePriority);
@@ -1243,7 +1282,7 @@
             this.groupBox6.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.groupBox6.Location = new System.Drawing.Point(661, 97);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(402, 463);
+            this.groupBox6.Size = new System.Drawing.Size(402, 378);
             this.groupBox6.TabIndex = 62;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Deployment Settings";
@@ -1260,19 +1299,6 @@
             this.cb_deployment_RandomizationEnabled.Text = "Randomization Enabled";
             this.cb_deployment_RandomizationEnabled.UseVisualStyleBackColor = true;
             this.cb_deployment_RandomizationEnabled.CheckedChanged += new System.EventHandler(this.cb_deployment_RandomizationEnabled_CheckedChanged);
-            // 
-            // b_Debug
-            // 
-            this.b_Debug.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.b_Debug.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.b_Debug.Location = new System.Drawing.Point(314, 421);
-            this.b_Debug.Name = "b_Debug";
-            this.b_Debug.Size = new System.Drawing.Size(75, 23);
-            this.b_Debug.TabIndex = 35;
-            this.b_Debug.Text = "Debug";
-            this.b_Debug.UseVisualStyleBackColor = true;
-            this.b_Debug.Visible = false;
-            this.b_Debug.Click += new System.EventHandler(this.b_Debug_Click);
             // 
             // cb_deployment_overrideserviceWindows
             // 
@@ -1630,7 +1656,6 @@
             // groupBox4
             // 
             this.groupBox4.Controls.Add(this.tb_packageFolder);
-            this.groupBox4.Controls.Add(this.label2);
             this.groupBox4.Controls.Add(this.label4);
             this.groupBox4.Controls.Add(this.tb_packagesourcePath);
             this.groupBox4.Controls.Add(this.b_createPath);
@@ -1646,7 +1671,7 @@
             // 
             this.b_createPath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.b_createPath.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.b_createPath.Location = new System.Drawing.Point(556, 29);
+            this.b_createPath.Location = new System.Drawing.Point(556, 25);
             this.b_createPath.Name = "b_createPath";
             this.b_createPath.Size = new System.Drawing.Size(75, 23);
             this.b_createPath.TabIndex = 38;
@@ -2021,6 +2046,160 @@
             this.b_removeDeployment.Text = "Remove  Deployment";
             this.b_removeDeployment.UseVisualStyleBackColor = true;
             this.b_removeDeployment.Click += new System.EventHandler(this.b_removeDeployment_Click);
+            // 
+            // tb_PhasedDeployments
+            // 
+            this.tb_PhasedDeployments.Controls.Add(this.dataGridView1);
+            this.tb_PhasedDeployments.Location = new System.Drawing.Point(4, 22);
+            this.tb_PhasedDeployments.Name = "tb_PhasedDeployments";
+            this.tb_PhasedDeployments.Size = new System.Drawing.Size(1069, 576);
+            this.tb_PhasedDeployments.TabIndex = 12;
+            this.tb_PhasedDeployments.Text = "Phased Deployments";
+            this.tb_PhasedDeployments.UseVisualStyleBackColor = true;
+            // 
+            // dataGridView1
+            // 
+            this.dataGridView1.AllowUserToOrderColumns = true;
+            this.dataGridView1.AllowUserToResizeRows = false;
+            this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dataGridView1.BackgroundColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.dataGridViewComboBoxColumn1,
+            this.dataGridViewComboBoxColumn2,
+            this.dataGridViewTextBoxColumn1,
+            this.dataGridViewComboBoxColumn3,
+            this.dataGridViewComboBoxColumn4,
+            this.dataGridViewTextBoxColumn2,
+            this.dataGridViewComboBoxColumn5,
+            this.dataGridViewTextBoxColumn3});
+            this.dataGridView1.Location = new System.Drawing.Point(3, 22);
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.Size = new System.Drawing.Size(1062, 533);
+            this.dataGridView1.TabIndex = 32;
+            // 
+            // dataGridViewComboBoxColumn1
+            // 
+            this.dataGridViewComboBoxColumn1.HeaderText = "Device Group";
+            this.dataGridViewComboBoxColumn1.Items.AddRange(new object[] {
+            "Client",
+            "Server"});
+            this.dataGridViewComboBoxColumn1.Name = "dataGridViewComboBoxColumn1";
+            this.dataGridViewComboBoxColumn1.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridViewComboBoxColumn1.Sorted = true;
+            this.dataGridViewComboBoxColumn1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.dataGridViewComboBoxColumn1.Width = 90;
+            // 
+            // dataGridViewComboBoxColumn2
+            // 
+            this.dataGridViewComboBoxColumn2.HeaderText = "Target Collection";
+            this.dataGridViewComboBoxColumn2.Items.AddRange(new object[] {
+            "1",
+            "2"});
+            this.dataGridViewComboBoxColumn2.Name = "dataGridViewComboBoxColumn2";
+            this.dataGridViewComboBoxColumn2.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridViewComboBoxColumn2.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.dataGridViewComboBoxColumn2.Width = 180;
+            // 
+            // dataGridViewTextBoxColumn1
+            // 
+            this.dataGridViewTextBoxColumn1.HeaderText = "Deployment Tag";
+            this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
+            this.dataGridViewTextBoxColumn1.Visible = false;
+            // 
+            // dataGridViewComboBoxColumn3
+            // 
+            this.dataGridViewComboBoxColumn3.HeaderText = "Intent";
+            this.dataGridViewComboBoxColumn3.Items.AddRange(new object[] {
+            "Available",
+            "Required"});
+            this.dataGridViewComboBoxColumn3.Name = "dataGridViewComboBoxColumn3";
+            this.dataGridViewComboBoxColumn3.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.dataGridViewComboBoxColumn3.Width = 80;
+            // 
+            // dataGridViewComboBoxColumn4
+            // 
+            this.dataGridViewComboBoxColumn4.HeaderText = "Available Date Offset (Days)";
+            this.dataGridViewComboBoxColumn4.Items.AddRange(new object[] {
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20"});
+            this.dataGridViewComboBoxColumn4.Name = "dataGridViewComboBoxColumn4";
+            this.dataGridViewComboBoxColumn4.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridViewComboBoxColumn4.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.dataGridViewComboBoxColumn4.Width = 180;
+            // 
+            // dataGridViewTextBoxColumn2
+            // 
+            this.dataGridViewTextBoxColumn2.HeaderText = "Available Date Offset (Time)";
+            this.dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
+            // 
+            // dataGridViewComboBoxColumn5
+            // 
+            this.dataGridViewComboBoxColumn5.HeaderText = "Deadline Date Offset (Days)";
+            this.dataGridViewComboBoxColumn5.Items.AddRange(new object[] {
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "22",
+            "23",
+            "24",
+            "25",
+            "26",
+            "27",
+            "28",
+            "29",
+            "30",
+            "31"});
+            this.dataGridViewComboBoxColumn5.Name = "dataGridViewComboBoxColumn5";
+            this.dataGridViewComboBoxColumn5.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.dataGridViewComboBoxColumn5.Width = 180;
+            // 
+            // dataGridViewTextBoxColumn3
+            // 
+            this.dataGridViewTextBoxColumn3.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.dataGridViewTextBoxColumn3.HeaderText = "Deadline Date Offset (Time)";
+            this.dataGridViewTextBoxColumn3.MinimumWidth = 100;
+            this.dataGridViewTextBoxColumn3.Name = "dataGridViewTextBoxColumn3";
             // 
             // tb_SecurityScopes
             // 
@@ -2672,7 +2851,7 @@
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(234, 13);
             this.label3.TabIndex = 3;
-            this.label3.Text = "Version 1.7 - By Robert Marshall (@RobMVP)";
+            this.label3.Text = "Version 1.8 - By Robert Marshall (@RobMVP)";
             // 
             // richTextBox1
             // 
@@ -2774,7 +2953,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Patch Master - Version 1.7";
+            this.Text = "Patch Master - Version 1.8";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgv_Transcript)).EndInit();
@@ -2785,6 +2964,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgv_SecurityScopes)).EndInit();
             this.tc_Main.ResumeLayout(false);
             this.tb_Config.ResumeLayout(false);
+            this.groupBox11.ResumeLayout(false);
             this.groupBox10.ResumeLayout(false);
             this.groupBox10.PerformLayout();
             this.groupBox9.ResumeLayout(false);
@@ -2810,6 +2990,8 @@
             this.groupBox1.PerformLayout();
             this.tb_Rules.ResumeLayout(false);
             this.tb_Deployments.ResumeLayout(false);
+            this.tb_PhasedDeployments.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.tb_SecurityScopes.ResumeLayout(false);
             this.tb_AvailablePatches.ResumeLayout(false);
             this.tb_AvailablePatches.PerformLayout();
@@ -2851,7 +3033,6 @@
         }
 
         #endregion
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox tb_packagesourcePath;
         private System.Windows.Forms.TextBox tb_packageFolder;
@@ -2955,7 +3136,6 @@
         private System.Windows.Forms.SplitContainer sc_View;
         private System.Windows.Forms.GroupBox gb_namingBar;
         private System.Windows.Forms.CheckBox cb_deployment_overrideserviceWindows;
-        private System.Windows.Forms.Button b_Debug;
         private System.Windows.Forms.CheckBox cb_deployment_RandomizationEnabled;
         private System.Windows.Forms.DataGridViewTextBoxColumn c_ignorepatches_KBID;
         private System.Windows.Forms.DataGridViewTextBoxColumn c_ignorepatches_LocalizedDisplayName;
@@ -3051,6 +3231,19 @@
         private System.Windows.Forms.Button b_addnewProfile;
         private System.Windows.Forms.Button b_removeselectedProfile;
         private System.Windows.Forms.TextBox tb_newprofileName;
+        private System.Windows.Forms.TabPage tb_PhasedDeployments;
+        private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.DataGridViewComboBoxColumn dataGridViewComboBoxColumn1;
+        private System.Windows.Forms.DataGridViewComboBoxColumn dataGridViewComboBoxColumn2;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
+        private System.Windows.Forms.DataGridViewComboBoxColumn dataGridViewComboBoxColumn3;
+        private System.Windows.Forms.DataGridViewComboBoxColumn dataGridViewComboBoxColumn4;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
+        private System.Windows.Forms.DataGridViewComboBoxColumn dataGridViewComboBoxColumn5;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
+        private System.Windows.Forms.GroupBox groupBox11;
+        private System.Windows.Forms.Button b_importREG;
+        private System.Windows.Forms.Button b_exportREG;
     }
 }
 

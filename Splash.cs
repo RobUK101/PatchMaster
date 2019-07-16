@@ -167,7 +167,7 @@ namespace PatchMaster
         {
             // Build Version
 
-            globalObjects.GlobalClass.buildVersion = "1.7";
+            globalObjects.GlobalClass.buildVersion = "1.8";
 
             // Get the selected profile from the registry (not using getRegistry as it is restricted to \\PROFILES registry key)
 

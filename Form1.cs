@@ -1,6 +1,6 @@
 ﻿// PatchMaster
 
-// Version 1.7
+// Version 1.8
 
 // Written by Robert Marshall - Freeware - 2018 - No rights reserved - All usage  is allowed short of complete piracy or slight release with cosmetic differences
 
@@ -1273,7 +1273,7 @@ namespace PatchMaster
 
                 foreach (globalObjects.ruleItem aruleItem in globalObjects.GlobalClass.globalruleitemCollection)
                 {
-                    dgv_Transcript.Rows.Add(aruleItem.DeviceType, aruleItem.Architectures, aruleItem.Products, aruleItem.Classifications, aruleItem.Languages, aruleItem.IncludeRule, aruleItem.ExcludeRule);                        
+                    dgv_Transcript.Rows.Add(aruleItem.DeviceType, aruleItem.Architectures, aruleItem.Products.Replace("^",","), aruleItem.Classifications, aruleItem.Languages, aruleItem.IncludeRule, aruleItem.ExcludeRule);                        
                 }
 
                 // Populate the DP List ComboBox
@@ -2250,6 +2250,7 @@ namespace PatchMaster
                 tc_Main.TabPages.Remove(tb_IgnorePatches);
                 tc_Main.TabPages.Remove(tb_SUMaint);
                 tc_Main.TabPages.Remove(tb_WSUS);
+                tc_Main.TabPages.Remove(tb_PhasedDeployments);
                 tc_Main.TabPages.Remove(tb_About);
             }
 
@@ -2284,7 +2285,10 @@ namespace PatchMaster
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            // These two tabs are still in development, 
+
             tc_Main.TabPages.Remove(tb_WSUS);
+            tc_Main.TabPages.Remove(tb_PhasedDeployments);
 
             sharedlogMessage("", true);
             sharedlogMessage("██████╗  █████╗ ████████╗ ██████╗██╗  ██╗███╗   ███╗ █████╗ ███████╗████████╗███████╗██████╗ ", true);
@@ -2295,11 +2299,11 @@ namespace PatchMaster
             sharedlogMessage("╚═╝     ╚═╝  ╚═╝   ╚═╝    ╚═════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝", true);
             sharedlogMessage("", true);
             sharedlogMessage("██╗   ██╗ ██╗   ███████╗", true);
-            sharedlogMessage("██║   ██║███║   ██╔════╝", true);
-            sharedlogMessage("██║   ██║╚██║   ███████╗", true);
-            sharedlogMessage("╚██╗ ██╔╝ ██║   ╚════██║", true);
+            sharedlogMessage("██║   ██║███║   ██    █║", true);
+            sharedlogMessage("██║   ██║╚██║   ███████║", true);
+            sharedlogMessage("╚██╗ ██╔╝ ██║   ██    █║", true);
             sharedlogMessage(" ╚████╔╝  ██║██╗███████║", true);
-            sharedlogMessage("  ╚═══╝   ╚═╝╚═╝╚══════╝", true);
+            sharedlogMessage("  ╚═══╝   ╚═╝╚═╝ ╚═════╝", true);
             sharedlogMessage("", true);
             sharedlogMessage(@"Startup date\time: " + DateTime.Now.GetDateTimeFormats('d')[0] + " " + DateTime.Now.GetDateTimeFormats('t')[0], true);
             sharedlogMessage("", true);
@@ -2392,7 +2396,14 @@ namespace PatchMaster
                         {
                             string passedString = dgv_Transcript[e.ColumnIndex, e.RowIndex].Value.ToString();
 
-                            passedList = passedString.Split(',').ToList();
+                            if (passedString.Contains(@"\"))
+                            {
+                                passedList = passedString.Split('\\').ToList();
+                            }
+                            else
+                            {
+                                passedList.Add(passedString);
+                            }
                         }
                         else
                         {
@@ -2406,9 +2417,8 @@ namespace PatchMaster
 
                     if (globalObjects.GlobalClass.popupformManifest != null)
                     {
-
-                        string aproductList = String.Join(",", globalObjects.GlobalClass.popupformManifest);
-
+                        string aproductList = String.Join("\\", globalObjects.GlobalClass.popupformManifest);                 
+                        
                         DataGridViewTextBoxCell aCell = new DataGridViewTextBoxCell();
 
                         aCell.Value = aproductList;
@@ -2419,6 +2429,10 @@ namespace PatchMaster
                         {
                             dgv_Transcript.CommitEdit(DataGridViewDataErrorContexts.Commit);
                         }
+
+                        dgv_Transcript.CommitEdit(DataGridViewDataErrorContexts.Commit);
+
+                        dgv_Transcript.Refresh();
                     }
                 }
 
@@ -3335,7 +3349,7 @@ namespace PatchMaster
 
                 foreach (globalObjects.ruleItem aruleItem in globalObjects.GlobalClass.globalruleitemCollection)
                 {
-                    List<string> productGroup = aruleItem.Products.Split(',').ToList();
+                    List<string> productGroup = aruleItem.Products.Split('\\').ToList();
 
                     List<string> classificationGroup = aruleItem.Classifications.Split(',').ToList();
 
@@ -5017,9 +5031,11 @@ namespace PatchMaster
 
                     foreach (globalObjects.ruleItem aruleItem in globalObjects.GlobalClass.globalruleitemCollection)
                     {
-                        List<string> productList = new List<string>(aruleItem.Products.Split(','));
+                        // Changing how Product is split, was using "," and now using "\"
 
-                        // Is this patch relevant?
+                        List<string> productList = new List<string>(aruleItem.Products.Split('\\'));
+
+                        // Is this patch relevant, does Product show in the patches categoryinstancenames list?
 
                         bool processthisPatch = false;
 
@@ -5144,7 +5160,7 @@ namespace PatchMaster
 
                                     if (globalObjects.GlobalClass.globalignorepatchesCollection.Count > 0)
                                     {
-                                        if (globalObjects.GlobalClass.globalignorepatchesCollection.Contains(aignorepatchesItem, aruleItem.Products.Split(',').ToList()))
+                                        if (globalObjects.GlobalClass.globalignorepatchesCollection.Contains(aignorepatchesItem, aruleItem.Products.Split('\\').ToList()))
                                         {
                                             ignorelistFound = true;
 
@@ -5165,7 +5181,7 @@ namespace PatchMaster
                                 {
                                     foreach (string atargetProduct in foundproductNames)
                                     {
-                                        if (!globalObjects.GlobalClass.SilentRunning) // Add the patch to the datagridview availablePatches
+                                        if (!globalObjects.GlobalClass.SilentRunning) // Add the patch
                                         {
                                             List<string> passList = new List<string>();
 
@@ -8735,11 +8751,6 @@ namespace PatchMaster
 
         }
 
-        private void b_Debug_Click(object sender, EventArgs e)
-        {
-            globalObjects.deploymentpropertyCollection testA = globalObjects.GlobalClass.globaldeploymentpropertiesCollection;
-        }
-
         private void cb_deployment_RandomizationEnabled_CheckedChanged(object sender, EventArgs e)
         {
             if (!globalObjects.GlobalClass.disableProcessing)
@@ -9211,6 +9222,101 @@ namespace PatchMaster
             setregistryNormal("PatchProfile", lb_profileList.SelectedItem);
 
             sharedlogMessage("Restart PatchMaster to apply profile " + lb_profileList.SelectedItem, false);
+        }
+
+        private void B_exportREG_Click(object sender, EventArgs e)
+        {
+            // Export the entire HKLM\Software\SMSMarshall\PatchMaster registry path
+
+            // Code helped along by https://stackoverflow.com/questions/16316827/how-to-export-a-registry-in-c-sharp
+
+            var proc = new Process();
+
+            var patchmasterProcess = System.Diagnostics.Process.GetCurrentProcess();
+            
+            int pmexportSerial = 1;
+
+            string patchmasterconfigPath = "";
+
+            while (1 == 1)
+            {
+                patchmasterconfigPath = patchmasterProcess.MainModule.FileName.ToString().Replace(@"\PatchMaster.exe", "") + @"\PatchMasterConfigExport";
+
+                patchmasterconfigPath = patchmasterconfigPath + pmexportSerial + ".reg";
+
+                if (File.Exists(patchmasterconfigPath))
+                {
+                    pmexportSerial ++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            try
+            {
+                proc.StartInfo.FileName = "regedit.exe";
+                proc.StartInfo.UseShellExecute = false;
+                string regeditParameters = "/e " + "\"" + patchmasterconfigPath + "\"" + " " + "HKEY_LOCAL_MACHINE\\Software\\SMSMarshall\\PatchMaster";
+                proc = Process.Start("regedit.exe", regeditParameters);
+
+                if (proc != null) proc.WaitForExit();
+            }
+            finally
+            {
+                if (proc != null) proc.Dispose();
+            }
+        }
+
+        private void B_importREG_Click(object sender, EventArgs e)
+        {
+            // Import the entire HKLM\Software\SMSMarshall\PatchMaster registry path from a file
+
+            // Show open file dialog
+
+            System.Windows.Forms.OpenFileDialog openconfigfileDialog = new System.Windows.Forms.OpenFileDialog();
+
+            var patchmasterProcess = System.Diagnostics.Process.GetCurrentProcess();
+
+            string patchmasterconfigPath = patchmasterProcess.MainModule.FileName.ToString().Replace(@"\PatchMaster.exe", "");
+
+            openconfigfileDialog.InitialDirectory = patchmasterconfigPath;
+
+            openconfigfileDialog.Title = "Open PatchMaster Configuration File";
+
+            openconfigfileDialog.DefaultExt = "REG";
+
+            openconfigfileDialog.Filter = "PatchMaster Configuration (*.Reg)|*.Reg|All files (*.*)|*.*";
+
+            openconfigfileDialog.CheckFileExists = true;
+
+            openconfigfileDialog.CheckPathExists = true;
+
+            string fileChosen = "";
+                       
+            if (openconfigfileDialog.ShowDialog() == DialogResult.OK)
+            {
+                fileChosen = openconfigfileDialog.FileName;
+            }
+
+            // Code helped along by https://stackoverflow.com/questions/16316827/how-to-export-a-registry-in-c-sharp
+
+            var proc = new Process();            
+
+            try
+            { 
+                proc.StartInfo.FileName = "regedit.exe";
+                proc.StartInfo.UseShellExecute = false;
+                string regeditParameters = "/s " + "\"" + fileChosen + "\"";
+                proc = Process.Start("regedit.exe", regeditParameters);
+
+                if (proc != null) proc.WaitForExit();
+            }
+            finally
+            {
+                if (proc != null) proc.Dispose();
+            }
         }
     }
 }
